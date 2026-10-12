@@ -208,9 +208,9 @@ const STATUS_KIND = {
 function statusBadge(status) { return badge(STATUS_LABEL[status] || status, STATUS_KIND[status]); }
 
 function roleLabel(role) {
-  return { admin: 'ADMINISTRATION', coordinateur: 'COORDINATEUR', enseignant: 'ENSEIGNANT' }[role] || role;
+  return { admin: 'ADMINISTRATION', coordinateur: 'COORDINATEUR', enseignant: 'ENSEIGNANT', etudiant: 'ÉTUDIANT' }[role] || role;
 }
-function roleKind(role) { return { admin: 'brand', coordinateur: 'purple', enseignant: 'info' }[role] || ''; }
+function roleKind(role) { return { admin: 'brand', coordinateur: 'purple', enseignant: 'info', etudiant: 'ok' }[role] || ''; }
 
 /* ---------------- Titres des responsables ---------------- */
 /* Miroir exact de server/util.js : le genre d'un compte sert UNIQUEMENT au titre

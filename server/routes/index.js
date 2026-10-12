@@ -10,5 +10,6 @@ module.exports = function mountRoutes(router) {
   require('./reservations')(router);
   require('./admin')(router);
   require('./personal')(router);
+  require('./absences')(router);
   require('./exports')(router);
 };

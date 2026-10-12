@@ -15,6 +15,10 @@ data/outbox/
 data/*.log
 data/test-report.json
 
+# Pieces jointes des absences (certificats medicaux) : jamais dans Git/GitHub.
+# Les fichiers restent sur disque, ils ne sont simplement pas indexes.
+data/justificatifs/
+
 # Dossier local de l'editeur Freebuff (donnees runtime hors projet).
 .freebuff/sponsored-runtime/
 

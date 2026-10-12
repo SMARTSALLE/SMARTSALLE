@@ -61,7 +61,7 @@ async function crudView(config) {
 /* ==================== UTILISATEURS ==================== */
 function ViewAdminUsers() {
   return crudView({
-    title: 'Utilisateurs', subtitle: 'Comptes administration, coordinateurs et enseignants',
+    title: 'Utilisateurs', subtitle: 'Comptes administration, coordinateurs, enseignants et étudiants',
     exportXls: '/api/export/users.xls',
     idKey: 'id',
     createTitle: 'Nouvel utilisateur', editTitle: (u) => `Modifier ${u.prenom} ${u.nom}`,
@@ -73,7 +73,7 @@ function ViewAdminUsers() {
       { name: 'prenom', label: 'Prénom', required: true },
       { name: 'nom', label: 'Nom', required: true },
       { name: 'email', label: 'Email', type: 'email', required: true },
-      { name: 'role', label: 'Rôle', type: 'select', options: [{ value: 'admin', label: 'ADMINISTRATION' }, { value: 'coordinateur', label: 'COORDINATEUR' }, { value: 'enseignant', label: 'ENSEIGNANT' }] },
+      { name: 'role', label: 'Rôle', type: 'select', options: [{ value: 'admin', label: 'ADMINISTRATION' }, { value: 'coordinateur', label: 'COORDINATEUR' }, { value: 'enseignant', label: 'ENSEIGNANT' }, { value: 'etudiant', label: 'ÉTUDIANT' }] },
       /* Fonction : détermine le titre affiché (Coordinateur / Coordinatrice).
          N'influence ni les droits ni les fonctionnalités du compte. */
       { name: 'gender', label: 'Fonction', type: 'select', help: 'Sert uniquement au titre affiché sur les profils et les documents.', options: [{ value: '', label: '— Non renseignée (titre masculin par défaut) —' }, { value: 'M', label: 'COORDINATEUR' }, { value: 'F', label: 'COORDINATRICE' }] },

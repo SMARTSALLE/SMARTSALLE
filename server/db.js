@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   prenom TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE COLLATE NOCASE,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('admin','coordinateur','enseignant')),
+  role TEXT NOT NULL CHECK (role IN ('admin','coordinateur','enseignant','etudiant')),
   -- Genre du titulaire : 'M' ou 'F' (vide = compte antérieur à cette colonne).
   -- Sert uniquement au titre affiché (Coordinateur / Coordinatrice) : il ne
   -- conditionne AUCUN droit d'accès ni aucune fonctionnalité.
@@ -39,6 +39,72 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role, status);
+
+-- =========================================================================
+-- ABSENCES ET JUSTIFICATIFS
+-- Règle essentielle : le DÉPÔT d'un document par l'étudiant n'entraîne JAMAIS
+-- automatiquement la validation de l'absence. Deux statuts bien distincts :
+--   1. le statut de la DEMANDE de justificatif (table justificatifs) ;
+--   2. le statut administratif de l'ABSENCE (table absences).
+-- L'absence n'est « JUSTIFIEE » qu'après une décision favorable explicite,
+-- prise par un utilisateur habilité (administration ou coordinateur de
+-- l'option), tracée dans justificatif_history.
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS absences (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  option_id INTEGER REFERENCES options(id) ON DELETE SET NULL,
+  day TEXT NOT NULL,
+  start_min INTEGER NOT NULL,
+  end_min INTEGER NOT NULL,
+  module_id INTEGER REFERENCES modules(id) ON DELETE SET NULL,
+  teacher_id INTEGER REFERENCES teachers(id) ON DELETE SET NULL,
+  module_label TEXT NOT NULL DEFAULT '',
+  teacher_label TEXT NOT NULL DEFAULT '',
+  motif TEXT NOT NULL DEFAULT '',
+  -- Statut ADMINISTRATIF de l'absence (distinct du statut de la demande).
+  status TEXT NOT NULL DEFAULT 'EN_ATTENTE' CHECK (status IN ('EN_ATTENTE','JUSTIFIEE','NON_JUSTIFIEE')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT,
+  CHECK (start_min % 30 = 0 AND end_min % 30 = 0 AND end_min > start_min),
+  CHECK (day LIKE '____-__-__')
+);
+CREATE INDEX IF NOT EXISTS idx_abs_student ON absences(student_id, day);
+CREATE INDEX IF NOT EXISTS idx_abs_option ON absences(option_id, status);
+CREATE INDEX IF NOT EXISTS idx_abs_teacher ON absences(teacher_id);
+
+CREATE TABLE IF NOT EXISTS justificatifs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  absence_id INTEGER NOT NULL UNIQUE REFERENCES absences(id) ON DELETE CASCADE,
+  -- Statut de la DEMANDE de justificatif (distinct du statut de l'absence).
+  status TEXT NOT NULL DEFAULT 'EN_ATTENTE' CHECK (status IN ('EN_ATTENTE','JUSTIFIE','REFUSE','COMPLEMENT_DEMANDE')),
+  document_path TEXT NOT NULL DEFAULT '',
+  document_name TEXT NOT NULL DEFAULT '',
+  document_mime TEXT NOT NULL DEFAULT '',
+  motif_refus TEXT NOT NULL DEFAULT '',
+  observations TEXT NOT NULL DEFAULT '',
+  decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  decided_at TEXT,
+  submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+  resubmitted_at TEXT,
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Traçabilité complète : toute modification de statut est enregistrée avec
+-- l'identité de l'auteur, la date et le commentaire éventuel.
+CREATE TABLE IF NOT EXISTS justificatif_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  justificatif_id INTEGER NOT NULL REFERENCES justificatifs(id) ON DELETE CASCADE,
+  absence_id INTEGER NOT NULL REFERENCES absences(id) ON DELETE CASCADE,
+  from_status TEXT NOT NULL DEFAULT '',
+  to_status TEXT NOT NULL,
+  actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  actor_label TEXT NOT NULL DEFAULT '',
+  comment TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_jhist_jf ON justificatif_history(justificatif_id);
 
 CREATE TABLE IF NOT EXISTS coordinator_options (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -533,6 +599,55 @@ function seed(d) {
   // signature eux-mêmes, calculés à partir du genre du responsable.
   const deadSig = d.prepare("DELETE FROM settings WHERE key IN ('sig_coordinateur_option','sig_coordinateur_filiere')").run();
   if (deadSig.changes) console.log(`[seed] ${deadSig.changes} libellé(s) de signature masculin(s) obsolète(s) retiré(s)`);
+
+  /* Migration : rôle « etudiant ». SQLite ne permet pas d'ALTERER une contrainte
+     CHECK — la table users est reconstruite (procédure standard en 4 temps,
+     clés étrangères désactivées le temps de la copie). La copie se fait colonne
+     par colonne, NOMMÉMENT : sur les bases antérieures, « gender » a été ajouté
+     en FIN de table, l'ordre physique diffère donc d'une création neuve.
+     Aucune donnée n'est modifiée : seuls les rôles acceptés s'élargissent. */
+  const usersSqlRow = d.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get();
+  if (usersSqlRow && !/etudiant/.test(usersSqlRow.sql || '')) {
+    const cols = 'id, nom, prenom, email, password_hash, role, gender, status, email_verified, active_option_id, teacher_id, created_at, updated_at';
+    /* Deux déclencheurs (ex. trg_res_restricted_*) interrogent la table users :
+       SQLite refuse alors de la supprimer (« no such table: main.users »).
+       Ils sont détachés le temps de la reconstruction puis recréés à l'identique. */
+    const dependentTriggers = d.prepare(
+      "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND sql LIKE '%users%'").all();
+    for (const t of dependentTriggers) d.exec(`DROP TRIGGER IF EXISTS "${t.name}"`);
+    d.exec('PRAGMA foreign_keys = OFF;');
+    try {
+      d.exec(`
+        CREATE TABLE users_rebuild (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nom TEXT NOT NULL,
+          prenom TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK (role IN ('admin','coordinateur','enseignant','etudiant')),
+          gender TEXT NOT NULL DEFAULT '',
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','active','refused','suspended')),
+          email_verified INTEGER NOT NULL DEFAULT 0,
+          active_option_id INTEGER REFERENCES options(id) ON DELETE SET NULL,
+          teacher_id INTEGER,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT
+        );
+        INSERT INTO users_rebuild (${cols}) SELECT ${cols} FROM users;
+        DROP TABLE users;
+        ALTER TABLE users_rebuild RENAME TO users;
+      `);
+      d.exec('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role, status);');
+      console.log("[seed] table users reconstruite : rôle « etudiant » accepté");
+    } finally {
+      d.exec('PRAGMA foreign_keys = ON;');
+    }
+    for (const t of dependentTriggers) {
+      try { d.exec(t.sql); } catch (e) { console.warn(`[seed] déclencheur ${t.name} non recréé : ${e.message}`); }
+    }
+    const broken = d.prepare('PRAGMA foreign_key_check').all();
+    if (broken.length) console.warn('[seed] clés étrangères à vérifier après reconstruction users :', broken.length);
+  }
 
   // Migration : colonne « category » (filière) sur les bases existantes.
   const optCols = d.prepare('PRAGMA table_info(options)').all();

@@ -16,6 +16,7 @@ const MENUS = {
     { path: '/admin/equipment', label: 'Équipements', icon: '🎧' },
     { path: '/reservations', label: 'Réservations', icon: '📅' },
     { path: '/planning', label: 'Planning global', icon: '🗓️' },
+    { path: '/absences/review', label: 'Absences et justificatifs', icon: '📋' },
     { path: '/sheets', label: 'Pages officielles', icon: '📄' },
     { path: '/find-room', label: 'Trouver une salle', icon: '🔍' },
     { section: 'Système' },
@@ -33,6 +34,7 @@ const MENUS = {
     { path: '/sheets', label: 'Pages officielles', icon: '📄' },
     { section: 'Ressources pédagogiques' },
     { path: '/pedagogy', label: 'Modules et enseignants', icon: '📚' },
+    { path: '/absences/review', label: 'Absences à vérifier', icon: '📋' },
     { path: '/rooms', label: 'Salles', icon: '🚪' },
     { section: 'Personnel' },
     { path: '/notes', label: 'Mes notes', icon: '📝' },
@@ -45,8 +47,14 @@ const MENUS = {
     { path: '/planning', label: 'Mon planning', icon: '🗓️' },
     { path: '/pedagogy', label: 'Mes modules', icon: '📚' },
     { path: '/reservations', label: 'Mes réservations', icon: '📅' },
+    { path: '/absences', label: 'Absences de mes cours', icon: '📋' },
     { path: '/rooms', label: 'Salles', icon: '🚪' },
     { section: 'Personnel' },
+    { path: '/notifications', label: 'Notifications', icon: '🔔' }
+  ],
+  etudiant: [
+    { section: 'Scolarité' },
+    { path: '/absences', label: 'Mes absences', icon: '📋' },
     { path: '/notifications', label: 'Notifications', icon: '🔔' }
   ]
 };
@@ -73,6 +81,8 @@ const ROUTES = [
   { path: '/notes', title: 'Mes notes', view: () => ViewNotes() },
   { path: '/tasks', title: 'Mes tâches', view: () => ViewTasks() },
   { path: '/notifications', title: 'Notifications', view: () => ViewNotifications() },
+  { path: '/absences', title: 'Absences', view: (p, q) => ViewAbsences(q) },
+  { path: '/absences/review', title: 'Absences et justificatifs', roles: ['admin', 'coordinateur'], view: (p, q) => ViewAbsencesReview(q) },
   { path: '/admin/users', title: 'Utilisateurs', roles: ['admin'], view: () => ViewAdminUsers() },
   { path: '/admin/requests', title: 'Demandes de comptes', roles: ['admin'], view: () => ViewAdminRequests() },
   { path: '/admin/options', title: 'Options', roles: ['admin'], view: () => ViewAdminOptions() },
@@ -93,7 +103,7 @@ function ViewHome() {
           h('a', { class: 'btn block', href: '#/login', style: { padding: '13px', fontSize: '15px' } }, 'CONNEXION'),
           h('a', { class: 'btn secondary block', href: '#/register', style: { padding: '13px', fontSize: '15px' } }, 'CRÉER UN COMPTE')),
         h('div', { class: 'auth-alt', style: { marginTop: '20px', lineHeight: 1.7 } },
-          'Trois espaces : Administration · Coordinateur · Enseignant')),
+          'Quatre espaces : Administration · Coordinateur · Enseignant · Étudiant')),
     ));
 }
 
@@ -128,12 +138,20 @@ function navigateTo(path) {
 }
 
 async function ensureCatalogs() {
-  try {
-    const [o, g, t] = await Promise.all([get('/api/options'), get('/api/groups'), get('/api/teachers')]);
-    window.__options = o.options || [];
-    window.__groups = g.groups || [];
-    window.__teachers = t.teachers || [];
-  } catch (e) { /* ignore */ }
+  /* Chaque catalogue est récupéré indépendamment : le refus d'un accès (403)
+     sur l'un d'eux ne doit pas priver la page des autres. L'espace étudiant n'a
+     pas besoin du catalogue des enseignants (réservé aux rôles pédagogiques). */
+  const jobs = [
+    ['__options', get('/api/options').then((v) => v.options || [])],
+    ['__groups', get('/api/groups').then((v) => v.groups || [])]
+  ];
+  if (!APP.user || APP.user.role !== 'etudiant') {
+    jobs.push(['__teachers', get('/api/teachers').then((v) => v.teachers || [])]);
+  }
+  const settled = await Promise.allSettled(jobs.map((j) => j[1]));
+  settled.forEach((res, i) => {
+    if (res.status === 'fulfilled') window[jobs[i][0]] = res.value;
+  });
 }
 
 let rendering = false;

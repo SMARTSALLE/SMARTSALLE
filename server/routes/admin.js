@@ -58,7 +58,7 @@ module.exports = function adminRoutes(router) {
     if (!isEmail(email)) throw new ApiError(400, 'INVALID_EMAIL', 'Email invalide.');
     if (String(b.password).length < 8) throw new ApiError(400, 'WEAK_PASSWORD', 'Mot de passe : 8 caractères minimum.');
     const role = str(b.role, 20);
-    if (!['admin', 'coordinateur', 'enseignant'].includes(role)) throw new ApiError(400, 'INVALID_ROLE', 'Rôle invalide.');
+    if (!['admin', 'coordinateur', 'enseignant', 'etudiant'].includes(role)) throw new ApiError(400, 'INVALID_ROLE', 'Rôle invalide.');
     const d = db.get();
     let optionIds = [];
     if (role === 'coordinateur' && Array.isArray(b.options)) {
@@ -168,7 +168,7 @@ module.exports = function adminRoutes(router) {
     /* Genre → titre affiché. Non fourni = on conserve celui du compte : la
        modification d'un autre champ ne doit jamais réinitialiser le titre. */
     const gender = b.gender !== undefined ? normalizeGender(b.gender) : normalizeGender(u.gender);
-    if (!['admin', 'coordinateur', 'enseignant'].includes(role)) throw new ApiError(400, 'INVALID_ROLE', 'Rôle invalide.');
+    if (!['admin', 'coordinateur', 'enseignant', 'etudiant'].includes(role)) throw new ApiError(400, 'INVALID_ROLE', 'Rôle invalide.');
     if (!isEmail(email)) throw new ApiError(400, 'INVALID_EMAIL', 'Email invalide.');
     try {
       d.prepare('UPDATE users SET nom=?, prenom=?, email=?, role=?, gender=?, teacher_id=?, updated_at=datetime(\'now\') WHERE id=?')

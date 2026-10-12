@@ -923,6 +923,192 @@ async function main() {
   check('fiche de réservation : filière Soins Infirmiers → Coordinatrice de filière',
     filiereTitle(ipOption && ipOption.category) === 'Coordinatrice de filière', ipOption && ipOption.category);
 
+  /* ============ ABSENCES ET JUSTIFICATIFS (DÉPÔT ≠ VALIDATION) ============ */
+  /* Règle essentielle : le simple dépôt d'un document par l'étudiant ne valide
+     JAMAIS une absence. Seule une décision d'un utilisateur habilité la rend
+     « JUSTIFIEE » ; toute modification de statut est tracée ; les documents
+     médicaux restent confidentiels. */
+  section('Absences et justificatifs (dépôt ≠ validation)');
+  const b64Doc = (mime) => `data:${mime};base64,${Buffer.from('SmartSalle piece de test — contenu simule').toString('base64')}`;
+  const pdfDoc = { document: b64Doc('application/pdf'), document_name: 'certificat.pdf' };
+  const saraId = db.prepare("SELECT id FROM users WHERE email = 'sara.ip@test.ma'").get().id;
+  const nadiaTeacherId = (db.prepare("SELECT teacher_id FROM users WHERE email = 'nadia.prof@test.ma'").get() || {}).teacher_id;
+
+  // Comptes étudiants créés par l'administration (aucune auto-inscription).
+  r = await call(admin, 'POST', '/api/admin/accounts', {
+    nom: 'Idrissi', prenom: 'Amal', email: 'amal.etu@test.ma', password: 'Secret123', role: 'etudiant', email_verified: true
+  });
+  check('création d’un compte étudiant par l’administration', r.status === 201 || r.status === 200,
+    `HTTP ${r.status} ${r.body.error && r.body.error.message}`);
+  r = await call(null, 'POST', '/api/auth/register', {
+    nom: 'X', prenom: 'Y', email: 'fake.etu@test.ma', password: 'Secret123', password2: 'Secret123', role: 'etudiant'
+  });
+  check('auto-inscription étudiant refusée', r.status === 403, `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
+
+  const student = session();
+  r = await call(student, 'POST', '/api/auth/login', { email: 'amal.etu@test.ma', password: 'Secret123' });
+  check('connexion étudiant', r.status === 200 && r.body.user && r.body.user.role === 'etudiant', `HTTP ${r.status}`);
+
+  await call(admin, 'POST', '/api/admin/accounts', {
+    nom: 'Autre', prenom: 'Etudiant', email: 'etud2@test.ma', password: 'Secret123', role: 'etudiant', email_verified: true
+  });
+  const student2 = session();
+  await call(student2, 'POST', '/api/auth/login', { email: 'etud2@test.ma', password: 'Secret123' });
+
+  // Sessions renouvelées (la réinitialisation de mot de passe a révoqué celles de Sara).
+  const coordAbs = session();
+  r = await call(coordAbs, 'POST', '/api/auth/login', { email: 'sara.ip@test.ma', password: 'Secret123' });
+  check('connexion coordinateur de l’option IP', r.status === 200, `HTTP ${r.status}`);
+  const coordIboAbs = session();
+  await call(coordIboAbs, 'POST', '/api/auth/login', { email: 'karim.ibo@test.ma', password: 'Secret123' });
+  const teacherAbs = session();
+  r = await call(teacherAbs, 'POST', '/api/auth/login', { email: 'nadia.prof@test.ma', password: 'Secret123' });
+  check('connexion enseignant', r.status === 200, `HTTP ${r.status}`);
+
+  // Métadonnées du formulaire de dépôt.
+  r = await call(student, 'GET', '/api/absences/meta');
+  check('métadonnées de dépôt accessibles à l’étudiant', r.status === 200 && Array.isArray(r.body.modules),
+    `${(r.body.modules || []).length} module(s)`);
+  check('le module de test y figure', (r.body.modules || []).some((m) => m.id === modS1));
+  r = await call(coordAbs, 'GET', '/api/absences/meta');
+  check('métadonnées refusées à un non-étudiant', r.status === 403, `HTTP ${r.status}`);
+
+  // Dépôt incomplet refusé (aucune demande sans pièce).
+  r = await call(student, 'POST', '/api/absences', {
+    day: tomorrow, start: '09:00', end: '11:00', module_id: modS1, motif: 'Sans pièce'
+  });
+  check('dépôt sans justificatif refusé', r.status === 400, `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
+
+  // DÉPÔT — la tentative de forcer un statut par l'étudiant est ignorée.
+  r = await call(student, 'POST', '/api/absences', {
+    day: tomorrow, start: '09:00', end: '11:00', module_id: modS1, teacher_id: nadiaTeacherId,
+    motif: 'Certificat médical en cours', status: 'JUSTIFIEE', ...pdfDoc
+  });
+  check('dépôt du justificatif accepté', r.status === 201, `HTTP ${r.status} ${r.body.error && r.body.error.message}`);
+  const absId = r.body && r.body.absence_id;
+  check('à la sortie du dépôt : demande « en attente de vérification »', r.body.demand_status === 'EN_ATTENTE', r.body.demand_status);
+  check('à la sortie du dépôt : absence NON justifiée', r.body.absence_status === 'EN_ATTENTE', r.body.absence_status);
+
+  const absRow = db.prepare('SELECT * FROM absences WHERE id = ?').get(absId);
+  const jfRow = db.prepare('SELECT * FROM justificatifs WHERE absence_id = ?').get(absId);
+  check('base : le dépôt n’a pas justifié l’absence', absRow && absRow.status === 'EN_ATTENTE', absRow && absRow.status);
+  check('base : champ « status » envoyé par l’étudiant ignoré', !!absRow && absRow.status !== 'JUSTIFIEE');
+  check('base : demande sans décision (décideur et date vides)', jfRow && jfRow.status === 'EN_ATTENTE' && !jfRow.decided_by && !jfRow.decided_at);
+  const hist0 = db.prepare('SELECT * FROM justificatif_history WHERE absence_id = ? ORDER BY id').all(absId);
+  check('historique : dépôt tracé avec l’auteur', hist0.length === 1 && hist0[0].to_status === 'EN_ATTENTE' && /Amal/.test(hist0[0].actor_label),
+    hist0.map((x) => x.to_status).join(' → '));
+  check('fichier de la pièce écrit sur le disque', fs.existsSync(path.join(ROOT, 'data', 'justificatifs', jfRow.document_path)), jfRow.document_path);
+
+  /* ---- Qui peut faire quoi : contrôle serveur ---- */
+  r = await call(student, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'ACCEPT' });
+  check('l’étudiant ne peut PAS valider son propre justificatif', r.status === 403, `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
+  r = await call(student, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'REFUSE', reason: 'test' });
+  check('l’étudiant ne peut PAS non plus refuser', r.status === 403, `HTTP ${r.status}`);
+  r = await call(student, 'GET', '/api/absences');
+  check('espace de vérification refusé à l’étudiant', r.status === 403, `HTTP ${r.status}`);
+  r = await call(student, 'POST', `/api/justificatifs/${jfRow.id}/document`, { document: b64Doc('image/png'), document_name: 'x.png' });
+  check('nouveau document refusé avant tout complément demandé', r.status === 409 && r.body.error.code === 'NOT_COMPLEMENT', `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
+  r = await call(student, 'PUT', `/api/absences/${absId}`, { status: 'JUSTIFIEE' });
+  check('aucun moyen pour l’étudiant de forcer un statut (pas de route)', [403, 404, 405].includes(r.status), `HTTP ${r.status}`);
+  check('statut inchangé après toutes ces tentatives', db.prepare('SELECT status FROM absences WHERE id = ?').get(absId).status === 'EN_ATTENTE');
+
+  r = await call(coordIboAbs, 'GET', '/api/absences');
+  check('coordinateur d’une autre option : absence invisible', r.status === 200 && !(r.body.absences || []).some((a) => a.id === absId), `HTTP ${r.status}`);
+  r = await call(coordIboAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'ACCEPT' });
+  check('coordinateur d’une autre option ne peut pas statuer', r.status === 403, `HTTP ${r.status}`);
+
+  // Enseignant : statut seul, jamais la pièce ni le motif.
+  r = await call(teacherAbs, 'GET', '/api/absences/enseignant');
+  const tRow = (r.body.absences || []).find((a) => a.id === absId);
+  check('l’enseignant voit l’absence de son cours', r.status === 200 && !!tRow, `HTTP ${r.status}`);
+  check('vue enseignant : statut de la demande visible, motif absent', !!tRow && !('motif' in tRow) && tRow.demand_status === 'EN_ATTENTE',
+    tRow && JSON.stringify(Object.keys(tRow)));
+  check('vue enseignant : aucune pièce justificative exposée', !!tRow && !('justificatif' in tRow));
+  r = await call(teacherAbs, 'GET', `/api/absences/${absId}`);
+  check('détail complet refusé à l’enseignant', r.status === 403, `HTTP ${r.status}`);
+  r = await call(teacherAbs, 'GET', `/api/justificatifs/${jfRow.id}/document`);
+  check('pièce médicale refusée à l’enseignant', r.status === 403, `HTTP ${r.status}`);
+  r = await call(student2, 'GET', `/api/absences/${absId}`);
+  check('un autre étudiant ne voit pas cette absence', r.status === 403, `HTTP ${r.status}`);
+  r = await call(student2, 'GET', `/api/justificatifs/${jfRow.id}/document`);
+  check('un autre étudiant ne télécharge pas la pièce', r.status === 403, `HTTP ${r.status}`);
+  r = await call(admin, 'GET', `/api/justificatifs/${jfRow.id}/document`);
+  check('l’administration accède à la pièce (habilitée)', r.status === 200 && (r.headers.get('content-type') || '').includes('pdf'),
+    `HTTP ${r.status} ${r.headers.get('content-type')}`);
+
+  /* ---- Décisions : complément, puis acceptation ---- */
+  r = await call(coordAbs, 'GET', '/api/absences');
+  check('le coordinateur habilité voit la demande', r.status === 200 && (r.body.absences || []).some((a) => a.id === absId));
+  r = await call(coordAbs, 'GET', '/api/absences?status=EN_ATTENTE');
+  check('filtre serveur par statut', r.status === 200 && (r.body.absences || []).every((a) => a.absence_status === 'EN_ATTENTE'));
+  r = await call(coordAbs, 'GET', `/api/absences/${absId}`);
+  check('détail + historique accessibles au coordinateur', r.status === 200 && Array.isArray(r.body.history) && r.body.history.length === 1,
+    `${(r.body.history || []).length} évènement(s)`);
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'COMPLEMENT' });
+  check('complément sans observations refusé', r.status === 400 && r.body.error.code === 'OBSERVATIONS_REQUIRED', `HTTP ${r.status}`);
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'REFUSE' });
+  check('refus sans motif refusé', r.status === 400 && r.body.error.code === 'REASON_REQUIRED', `HTTP ${r.status}`);
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, {
+    action: 'COMPLEMENT', observations: 'Certificat illisible : renvoyer une photo nette.'
+  });
+  check('complément demandé accepté', r.status === 200 && r.body.demand_status === 'COMPLEMENT_DEMANDE', `HTTP ${r.status}`);
+  check('un complément demandé ne justifie toujours pas', r.body.absence_status === 'EN_ATTENTE', r.body.absence_status);
+  check('base : absence toujours EN_ATTENTE', db.prepare('SELECT status FROM absences WHERE id = ?').get(absId).status === 'EN_ATTENTE');
+
+  // Nouveau document par l'étudiant (uniquement après complément demandé).
+  r = await call(student, 'POST', `/api/justificatifs/${jfRow.id}/document`, { document: b64Doc('image/png'), document_name: 'certificat_v2.png' });
+  check('nouveau document accepté après complément demandé', r.status === 200 && r.body.version === 2, `HTTP ${r.status} v${r.body && r.body.version}`);
+  check('le renvoi repasse la demande en attente sans justifier', r.body.demand_status === 'EN_ATTENTE' && r.body.absence_status === 'EN_ATTENTE');
+
+  // Décision finale favorable — seul cas de justification.
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'ACCEPT', observations: 'Certificat conforme.' });
+  check('acceptation par le coordinateur habilité', r.status === 200 && r.body.demand_status === 'JUSTIFIE', `HTTP ${r.status} ${r.body.error && r.body.error.message}`);
+  check('absence officiellement justifiée', r.body.absence_status === 'JUSTIFIEE', r.body.absence_status);
+  const absFinal = db.prepare('SELECT * FROM absences WHERE id = ?').get(absId);
+  const jfFinal = db.prepare('SELECT * FROM justificatifs WHERE absence_id = ?').get(absId);
+  check('base : absence JUSTIFIEE après décision favorable', absFinal.status === 'JUSTIFIEE', absFinal.status);
+  check('traçabilité : identité du responsable + date de traitement', jfFinal.decided_by === saraId && !!jfFinal.decided_at,
+    `décideur ${jfFinal.decided_by} le ${jfFinal.decided_at}`);
+  check('les deux statuts restent distincts (JUSTIFIE / JUSTIFIEE)', jfFinal.status === 'JUSTIFIE' && absFinal.status === 'JUSTIFIEE',
+    `${jfFinal.status} / ${absFinal.status}`);
+  const histFinal = db.prepare('SELECT * FROM justificatif_history WHERE absence_id = ? ORDER BY id').all(absId);
+  check('historique complet : dépôt → complément → décision',
+    histFinal.length >= 3 && histFinal[histFinal.length - 1].to_status === 'JUSTIFIE', histFinal.map((x) => x.to_status).join(' → '));
+  check('auteur de la décision identifié dans l’historique', /Sara/.test(histFinal[histFinal.length - 1].actor_label),
+    histFinal[histFinal.length - 1].actor_label);
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfRow.id}/decision`, { action: 'REFUSE', reason: 'tardivement' });
+  check('seconde décision refusée (décision définitive)', r.status === 409 && r.body.error.code === 'ALREADY_DECIDED', `HTTP ${r.status}`);
+
+  // Consultation par l'étudiant : il voit l'état, jamais la décision.
+  r = await call(student, 'GET', '/api/absences/mine');
+  const mine = (r.body.absences || []).find((a) => a.id === absId);
+  check('l’étudiant consulte l’état de sa demande', r.status === 200 && !!mine && mine.absence_status === 'JUSTIFIEE',
+    mine && `${mine.absence_status}/${(mine.justificatif || {}).status}`);
+  r = await call(student, 'GET', `/api/justificatifs/${jfRow.id}/document`);
+  check('l’étudiant propriétaire accède à sa propre pièce', r.status === 200, `HTTP ${r.status}`);
+  r = await call(teacherAbs, 'GET', `/api/absences/${absId}`);
+  check('enseignant toujours exclu du détail après décision', r.status === 403, `HTTP ${r.status}`);
+
+  /* ---- Second cas : refus → absence NON justifiée ---- */
+  const dep2 = await call(student, 'POST', '/api/absences', {
+    day: nextWeek, start: '14:00', end: '16:00', module_id: modS1, teacher_id: nadiaTeacherId,
+    motif: 'Justificatif non conforme', ...pdfDoc
+  });
+  check('second dépôt accepté', dep2.status === 201, `HTTP ${dep2.status}`);
+  const absId2 = dep2.body && dep2.body.absence_id;
+  const jfId2 = db.prepare('SELECT id FROM justificatifs WHERE absence_id = ?').get(absId2).id;
+  r = await call(coordAbs, 'POST', `/api/justificatifs/${jfId2}/decision`, {
+    action: 'REFUSE', reason: 'Document non conforme à la date déclarée.', observations: 'Vérifié le jour même.'
+  });
+  check('refus → demande REFUSE et absence NON_JUSTIFIEE', r.status === 200 && r.body.demand_status === 'REFUSE' && r.body.absence_status === 'NON_JUSTIFIEE',
+    `HTTP ${r.status} ${r.body && r.body.absence_status}`);
+  check('motif du refus conservé et transmis', (db.prepare('SELECT motif_refus FROM justificatifs WHERE id = ?').get(jfId2).motif_refus || '').includes('non conforme'));
+  r = await call(student, 'GET', '/api/absences/mine');
+  const mine2 = (r.body.absences || []).find((a) => a.id === absId2);
+  check('l’étudiant voit « absence non justifiée »', !!mine2 && mine2.absence_status === 'NON_JUSTIFIEE', mine2 && mine2.absence_status);
+  r = await call(coordAbs, 'GET', '/api/absences?status=NON_JUSTIFIEE');
+  check('liste des absences non justifiées', r.status === 200 && (r.body.absences || []).some((a) => a.id === absId2));
+
   /* ============ RAPPORT ============ */
   await new Promise((res) => setTimeout(res, 400));
   const pass = results.filter((r2) => r2.pass).length;
