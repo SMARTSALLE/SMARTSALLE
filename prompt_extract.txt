@@ -1,0 +1,1452 @@
+
+CRÉER UNE APPLICATION FULL-STACK COMPLÈTE À PARTIR DE ZÉRO
+
+NOM DE L’APPLICATION :
+SmartSalle ISPITS
+
+SOUS-TITRE :
+Gestion intelligente des salles, des emplois du temps et des réservations — ISPITS Laâyoune
+
+============================================================
+1. OBJECTIF GÉNÉRAL
+============================================================
+
+Créer à partir de zéro une véritable application web professionnelle appelée :
+
+SMARTSALLE ISPITS
+
+L’objectif est de centraliser la gestion des salles, des réservations et des emplois du temps de l’ISPITS.
+
+L’application doit permettre :
+
+- de connaître les salles disponibles ;
+- de connaître les salles occupées ;
+- de réserver une salle ;
+- d’éviter les doubles réservations ;
+- de rechercher automatiquement une salle libre ;
+- de gérer les options ;
+- de gérer les groupes ;
+- de gérer les modules ;
+- de gérer les enseignants ;
+- de gérer les réservations ;
+- de gérer les emplois du temps ;
+- de permettre aux coordinateurs de travailler simultanément ;
+- de permettre à l’administration d’avoir une vision globale ;
+- de synchroniser les changements en temps réel ;
+- d’imprimer les emplois du temps ;
+- d’exporter les données ;
+- de conserver un historique des modifications.
+
+Ce doit être une vraie application fonctionnelle et non une simple maquette.
+
+============================================================
+2. TECHNOLOGIE
+============================================================
+
+Construire une application Full-Stack moderne.
+
+Utiliser les fonctionnalités natives disponibles dans Freebuff pour :
+
+- Frontend
+- Backend
+- Base de données
+- Authentification
+- Stockage si nécessaire
+- API
+- Synchronisation temps réel
+- Hébergement
+
+Utiliser une architecture propre, sécurisée et évolutive.
+
+La base de données doit être persistante.
+
+NE PAS utiliser uniquement des données statiques ou localStorage pour les données principales.
+
+Toutes les données importantes doivent être enregistrées dans la base de données.
+
+============================================================
+3. DESIGN
+============================================================
+
+STYLE :
+Clean
+
+FEEL :
+Professional
+
+DESCRIPTION VISUELLE :
+
+Interface professionnelle, moderne, propre, institutionnelle et responsive pour SmartSalle ISPITS.
+
+L’interface doit être adaptée à :
+
+- Administration
+- Coordinateurs
+- Enseignants
+
+Design :
+
+- simple
+- élégant
+- professionnel
+- intuitif
+- rapide
+- lisible
+- responsive
+- adapté mobile, tablette et ordinateur.
+
+Prévoir une navigation claire avec sidebar sur ordinateur et navigation adaptée au mobile.
+
+Nom affiché :
+
+SMARTSALLE ISPITS
+
+Logo/icône simple représentant :
+
+- une salle
+- un calendrier
+- une réservation
+- éventuellement un symbole institutionnel moderne.
+
+============================================================
+4. UTILISATEURS ET RÔLES
+============================================================
+
+Créer trois rôles principaux :
+
+1. ADMINISTRATION
+2. COORDINATEUR
+3. ENSEIGNANT
+
+Les permissions doivent être contrôlées côté serveur/base de données.
+
+NE PAS simplement cacher les boutons dans le frontend.
+
+============================================================
+5. CRÉATION DE COMPTE
+============================================================
+
+Créer une page :
+
+INSCRIPTION
+
+Champs :
+
+- Nom
+- Prénom
+- Email
+- Mot de passe
+- Confirmation du mot de passe
+- Rôle souhaité
+
+Si le rôle choisi est :
+
+COORDINATEUR
+
+afficher :
+
+« Choisissez les options que vous coordonnez »
+
+Le coordinateur peut demander :
+
+1 option
+2 options
+maximum 3 options.
+
+Il ne peut jamais demander plus de 3 options.
+
+============================================================
+6. VÉRIFICATION EMAIL
+============================================================
+
+Après inscription :
+
+envoyer un code de vérification directement à l’adresse email.
+
+Le code doit être :
+
+- temporaire
+- sécurisé
+- avec expiration
+- avec possibilité de renvoi.
+
+Le compte reste en attente tant que :
+
+1. l’email n’est pas vérifié ;
+2. l’administration n’a pas validé le compte.
+
+============================================================
+7. VALIDATION ADMINISTRATIVE
+============================================================
+
+Créer dans le tableau de bord ADMIN :
+
+DEMANDES DE COMPTES
+
+Afficher :
+
+- Nom
+- Prénom
+- Email
+- Rôle
+- Options demandées
+- Email vérifié
+- Date de demande
+- Statut
+
+Statuts :
+
+- EN ATTENTE
+- VALIDÉ
+- REFUSÉ
+
+Actions :
+
+[VALIDER]
+[REFUSER]
+
+============================================================
+8. GESTION DES OPTIONS
+============================================================
+
+Créer une table :
+
+OPTIONS
+
+Exemples de structure :
+
+- id
+- nom
+- code
+- description
+- statut
+
+Les options doivent être configurables par l’administration.
+
+IMPORTANT :
+
+Un coordinateur peut demander 1 à 3 options.
+
+Mais les options demandées ne deviennent PAS automatiquement ses options.
+
+Il faut une validation de l’administration.
+
+Créer une relation :
+
+COORDINATOR_OPTIONS
+
+Champs :
+
+- user_id
+- option_id
+- status
+- requested_at
+- approved_at
+- approved_by
+
+Statuts :
+
+REQUESTED
+APPROVED
+REJECTED
+
+============================================================
+9. SÉLECTION DES OPTIONS APRÈS VALIDATION
+============================================================
+
+Si le coordinateur possède :
+
+UNE seule option APPROUVÉE :
+
+ouvrir directement son tableau de bord.
+
+S’il possède :
+
+PLUSIEURS options APPROUVÉES :
+
+afficher :
+
+« Sélectionnez votre option »
+
+Exemple :
+
+[ IP ]
+[ IBO ]
+
+Le coordinateur peut changer d’option active.
+
+Lorsque l’option active change :
+
+mettre automatiquement à jour :
+
+- groupes
+- modules
+- réservations
+- statistiques
+- planning
+- informations affichées.
+
+Le coordinateur ne peut jamais s’attribuer lui-même une nouvelle option.
+
+Pour une nouvelle option :
+
+il doit faire une nouvelle demande à l’administration.
+
+============================================================
+10. TABLEAU DE BORD ADMIN
+============================================================
+
+Créer un Dashboard Administration.
+
+Afficher des statistiques :
+
+- nombre total de salles
+- salles disponibles
+- salles occupées
+- réservations aujourd’hui
+- réservations cette semaine
+- nombre d’options
+- nombre de groupes
+- nombre d’enseignants
+- demandes de comptes en attente.
+
+Ajouter une vue rapide :
+
+Salles libres maintenant.
+
+Salles occupées maintenant.
+
+Prochaines réservations.
+
+============================================================
+11. TABLEAU DE BORD COORDINATEUR
+============================================================
+
+Afficher :
+
+- option active
+- groupes
+- modules
+- enseignants
+- réservations
+- planning
+- salles disponibles
+- prochaines activités
+- statistiques de son/ses options.
+
+Ajouter :
+
+[ TROUVER UNE SALLE ]
+
+[ NOUVELLE RÉSERVATION ]
+
+[ MON PLANNING ]
+
+[ MES NOTES ]
+
+[ MES TÂCHES ]
+
+============================================================
+12. TABLEAU DE BORD ENSEIGNANT
+============================================================
+
+L’enseignant peut consulter :
+
+- son planning
+- ses modules
+- ses réservations
+- ses salles
+- ses horaires.
+
+Il ne peut pas modifier les paramètres administratifs.
+
+============================================================
+13. INVENTAIRE DES SALLES
+============================================================
+
+IMPORTANT :
+
+L’établissement possède les salles suivantes.
+
+REZ-DE-CHAUSSÉE :
+
+S01
+S02
+S03
+S04
+S05
+S12-RDC
+S13
+
+PREMIER ÉTAGE :
+
+S06
+S07
+S08
+S09
+S10
+S11
+S12-1ER
+
+AMPHITHÉÂTRE :
+
+AMPHI
+
+Localisation :
+
+Entrée de l’ISPITS, à gauche.
+
+IMPORTANT :
+
+Il existe deux salles portant le numéro 12.
+
+Elles doivent avoir des identifiants différents :
+
+S12-RDC
+S12-1ER
+
+NE JAMAIS afficher uniquement :
+
+« Salle 12 »
+
+============================================================
+14. S12-1ER — MASTER MANAGEMENT
+============================================================
+
+S12-1ER est réservée toute l’année au :
+
+MASTER MANAGEMENT.
+
+Elle est donc :
+
+- exclue des recherches normales ;
+- exclue de la recherche automatique ;
+- exclue des salles libres ;
+- exclue des réservations normales ;
+- exclue des propositions automatiques.
+
+Elle reste visible pour l’administration.
+
+Afficher :
+
+S12-1ER
+Premier étage
+RÉSERVÉE AU MASTER MANAGEMENT
+INDISPONIBLE POUR LES AUTRES OPTIONS
+
+Cette règle doit être appliquée côté backend/base de données.
+
+============================================================
+15. AMPITHÉÂTRE
+============================================================
+
+AMPHI est un espace spécial.
+
+Localisation :
+
+« Entrée ISPITS — à gauche »
+
+Il peut être réservé lorsqu’il est disponible.
+
+Il doit apparaître dans la recherche des salles.
+
+============================================================
+16. SUPPRESSION DES CAPACITÉS
+============================================================
+
+NE PAS créer de capacité fixe pour les salles.
+
+NE PAS utiliser :
+
+20 étudiants
+25
+30
+35
+40
+50
+60
+100
+180
+etc.
+
+Le nombre d’étudiants NE DOIT PAS être utilisé pour décider si une salle est disponible.
+
+Le nombre d’étudiants est seulement une information de réservation.
+
+Exemple :
+
+Nombre d’étudiants : 100
+
+La recherche doit quand même proposer les salles disponibles.
+
+============================================================
+17. RECHERCHE INTELLIGENTE DE SALLE
+============================================================
+
+Créer une fonction centrale :
+
+« TROUVER UNE SALLE »
+
+L’utilisateur sélectionne :
+
+- Date
+- Heure de début
+- Heure de fin
+
+Optionnel :
+
+- équipement souhaité.
+
+Puis :
+
+[ TROUVER UNE SALLE ]
+
+Le système recherche automatiquement toutes les salles disponibles.
+
+Exclure automatiquement :
+
+S12-1ER.
+
+Ne jamais utiliser le nombre d’étudiants comme filtre.
+
+============================================================
+18. CRITÈRES DE DISPONIBILITÉ
+============================================================
+
+Une salle est disponible si :
+
+- elle est active ;
+- elle n’est pas réservée au Master Management ;
+- elle n’a pas de réservation qui chevauche le créneau demandé ;
+- elle possède les équipements demandés si un équipement spécifique est requis.
+
+============================================================
+19. CONFLITS DE RÉSERVATION
+============================================================
+
+INTERDIRE les chevauchements.
+
+Exemple :
+
+S03 :
+
+08:00 → 10:00
+
+Impossible :
+
+09:00 → 11:00
+
+Possible :
+
+10:00 → 12:00
+
+Cette règle doit être appliquée :
+
+- frontend
+- backend
+- base de données.
+
+Même si deux utilisateurs réservent au même moment, la base de données doit empêcher le conflit.
+
+============================================================
+20. RÉSERVATION
+============================================================
+
+Créer :
+
+NOUVELLE RÉSERVATION
+
+Champs :
+
+- Option
+- Groupe
+- Module
+- Enseignant
+- Date
+- Heure début
+- Heure fin
+- Nombre d’étudiants
+- Salle
+- Équipement
+- Notes.
+
+Le nombre d’étudiants est informatif uniquement.
+
+============================================================
+21. ENSEIGNANTS
+============================================================
+
+Créer une gestion des enseignants.
+
+Administration :
+
+- ajouter
+- modifier
+- désactiver
+- supprimer si nécessaire.
+
+Ne pas créer de faux enseignants dans la version production.
+
+Lors d’une réservation :
+
+l’utilisateur peut choisir un enseignant existant.
+
+Prévoir également :
+
+teacher_name_override
+
+pour permettre une saisie manuelle si nécessaire.
+
+============================================================
+22. MODULES
+============================================================
+
+Créer une gestion des modules.
+
+Un module peut être associé à :
+
+- option
+- semestre
+- année
+- groupe.
+
+Lors d’une réservation :
+
+choisir un module existant.
+
+Prévoir également :
+
+module_name_override
+
+pour une saisie manuelle exceptionnelle.
+
+============================================================
+23. GROUPES
+============================================================
+
+Créer une gestion des groupes.
+
+Un groupe doit pouvoir être associé à :
+
+- option
+- semestre
+- année
+- nombre d’étudiants.
+
+Le nombre d’étudiants du groupe est informatif.
+
+Il ne doit pas être utilisé comme filtre de capacité des salles.
+
+============================================================
+24. VISIBILITÉ DES RÉSERVATIONS
+============================================================
+
+Les coordinateurs doivent pouvoir voir les réservations de toutes les options afin de connaître la disponibilité réelle des salles.
+
+Exemple :
+
+S04
+10:00–12:00
+IBO
+
+Un coordinateur IP doit voir :
+
+S04 — OCCUPÉE
+IBO
+10:00–12:00
+
+Mais il ne peut pas modifier cette réservation.
+
+============================================================
+25. DROITS DU COORDINATEUR
+============================================================
+
+Le coordinateur peut :
+
+- consulter toutes les disponibilités ;
+- voir les réservations des autres options ;
+- créer des réservations pour ses options validées ;
+- modifier ses réservations ;
+- supprimer ses réservations ;
+- reprogrammer ses réservations.
+
+Il ne peut pas :
+
+- modifier les réservations d’une autre option ;
+- supprimer les réservations d’une autre option ;
+- modifier les salles ;
+- modifier les utilisateurs ;
+- modifier les paramètres globaux.
+
+============================================================
+26. ADMINISTRATION
+============================================================
+
+L’administration possède un contrôle complet.
+
+Elle peut :
+
+- gérer utilisateurs ;
+- gérer options ;
+- gérer groupes ;
+- gérer modules ;
+- gérer enseignants ;
+- gérer salles ;
+- gérer réservations ;
+- gérer planning ;
+- gérer équipements ;
+- gérer les statuts ;
+- consulter l’historique.
+
+============================================================
+27. EMPLOI DU TEMPS
+============================================================
+
+Créer un planning hebdomadaire.
+
+Jours :
+
+Lundi
+Mardi
+Mercredi
+Jeudi
+Vendredi
+Samedi
+
+Horaires :
+
+08:00 → 18:00
+
+Dimanche fermé par défaut.
+
+L’administration doit pouvoir modifier ces horaires dans les paramètres.
+
+Afficher :
+
+- heure
+- salle
+- option
+- groupe
+- module
+- enseignant.
+
+============================================================
+28. PLANNING GLOBAL ADMINISTRATION
+============================================================
+
+Créer :
+
+PLANNING GLOBAL
+
+Filtres :
+
+- option
+- groupe
+- module
+- enseignant
+- salle
+- date
+- étage.
+
+L’administration doit pouvoir visualiser toute l’activité de l’ISPITS.
+
+============================================================
+29. COPIER UN PLANNING
+============================================================
+
+Ajouter :
+
+COPIER LA JOURNÉE
+
+COPIER LA SEMAINE
+
+Avant de créer les nouvelles réservations :
+
+vérifier automatiquement les conflits.
+
+Ne jamais créer de doublons ou de chevauchements.
+
+============================================================
+30. REPROGRAMMATION
+============================================================
+
+Ajouter une fonction :
+
+REPROGRAMMER
+
+Permettre de modifier :
+
+- date
+- heure
+- salle
+- groupe
+- enseignant
+- module si autorisé.
+
+Toujours effectuer une nouvelle vérification des conflits.
+
+============================================================
+31. SYNCHRONISATION TEMPS RÉEL
+============================================================
+
+L’application doit être multi-utilisateur.
+
+Si un coordinateur réserve S05 :
+
+un autre utilisateur doit immédiatement voir :
+
+S05 = OCCUPÉE.
+
+Utiliser la synchronisation temps réel disponible dans l’architecture.
+
+============================================================
+32. NOTES
+============================================================
+
+Créer :
+
+MES NOTES
+
+Les coordinateurs peuvent créer des notes personnelles.
+
+Par défaut :
+
+les notes sont privées.
+
+Champs :
+
+- titre
+- contenu
+- date de création
+- date de modification.
+
+============================================================
+33. TÂCHES
+============================================================
+
+Créer :
+
+MES TÂCHES
+
+Champs :
+
+- titre
+- description
+- date limite
+- priorité
+- statut.
+
+Priorités :
+
+LOW
+NORMAL
+HIGH
+URGENT
+
+Statuts :
+
+À FAIRE
+EN COURS
+TERMINÉE
+
+============================================================
+34. NOTIFICATIONS
+============================================================
+
+Créer un système de notifications.
+
+Exemples :
+
+- réservation créée
+- réservation modifiée
+- réservation annulée
+- demande de compte validée
+- demande refusée
+- nouvelle demande d’option
+- conflit détecté
+- rappel de tâche.
+
+============================================================
+35. QR CODE DES SALLES
+============================================================
+
+Créer un QR code unique pour chaque salle.
+
+Après scan :
+
+afficher une page publique en lecture seule :
+
+Nom de la salle
+Étage
+Localisation
+Statut actuel
+Planning
+Prochaine réservation.
+
+Aucune modification possible depuis cette page.
+
+============================================================
+36. EXPORTS
+============================================================
+
+Prévoir :
+
+Export PDF
+Export Excel
+
+Pour :
+
+- planning
+- réservations
+- salles
+- listes administratives.
+
+============================================================
+37. IMPRESSION DE L’EMPLOI DU TEMPS
+============================================================
+
+Créer une fonction :
+
+IMPRIMER L’EMPLOI DU TEMPS
+
+Format :
+
+A4 paysage.
+
+En-tête :
+
+ROYAUME DU MAROC
+
+MINISTÈRE DE LA SANTÉ ET DE LA PROTECTION SOCIALE
+
+ISPITS LAÂYOUNE
+
+SMARTSALLE ISPITS
+
+EMPLOI DU TEMPS
+
+Ajouter un texte configurable par l’administration.
+
+Afficher automatiquement :
+
+- semestre
+- option
+- groupe
+- module
+- enseignant
+- salle
+- jour
+- date
+- heure.
+
+Prévoir en bas :
+
+Signature du Coordinateur d’Option
+
+Signature du Coordinateur de Filière
+
+Signature du DAC
+
+Signature du Directeur de l’ISPITS
+
+Créer :
+
+APERÇU
+
+IMPRIMER
+
+ENREGISTRER EN PDF
+
+============================================================
+38. HISTORIQUE / AUDIT
+============================================================
+
+Créer une table d’historique.
+
+Enregistrer :
+
+- utilisateur
+- action
+- date
+- heure
+- élément concerné
+- ancienne valeur
+- nouvelle valeur.
+
+Exemples :
+
+Création réservation
+Modification réservation
+Suppression réservation
+Validation utilisateur
+Validation option
+Modification salle.
+
+============================================================
+39. VIDER LE PLANNING
+============================================================
+
+Créer une fonction ADMIN :
+
+VIDER LE PLANNING
+
+Cette fonction doit supprimer uniquement :
+
+- réservations
+- programmations.
+
+Elle ne doit PAS supprimer :
+
+- utilisateurs
+- salles
+- options
+- groupes
+- modules
+- enseignants
+- paramètres.
+
+Afficher une confirmation avant suppression.
+
+============================================================
+40. RECHERCHE GLOBALE
+============================================================
+
+Créer une recherche globale permettant de rechercher :
+
+- salle
+- réservation
+- option
+- groupe
+- module
+- enseignant.
+
+============================================================
+41. SMART SEARCH
+============================================================
+
+Ajouter une fonction :
+
+« Trouver une salle »
+
+permettant une recherche simple.
+
+Exemple :
+
+« Trouve-moi une salle mardi de 10h à 12h »
+
+Le système doit comprendre :
+
+- jour/date
+- heure
+- durée.
+
+Puis proposer les salles disponibles.
+
+Si une information manque :
+
+demander uniquement l’information nécessaire.
+
+============================================================
+42. SÉCURITÉ
+============================================================
+
+Respecter les bonnes pratiques de sécurité.
+
+- Authentification sécurisée
+- Autorisations côté serveur
+- Contrôle des rôles
+- Protection des données
+- Validation des entrées
+- Protection contre les accès non autorisés
+- Règles de base de données.
+
+NE JAMAIS mettre de clé secrète ou service key dans le frontend.
+
+============================================================
+43. RESPONSIVE
+============================================================
+
+L’application doit fonctionner parfaitement sur :
+
+- Android
+- iPhone
+- tablette
+- ordinateur.
+
+Le coordinateur doit pouvoir réserver une salle depuis son téléphone.
+
+============================================================
+44. PAGE D’ACCUEIL
+============================================================
+
+Créer une page de connexion professionnelle.
+
+Logo :
+
+SMARTSALLE ISPITS
+
+Phrase :
+
+« Gestion intelligente des salles et des emplois du temps »
+
+Boutons :
+
+CONNEXION
+
+CRÉER UN COMPTE
+
+============================================================
+45. MENU PRINCIPAL
+============================================================
+
+ADMINISTRATION :
+
+Dashboard
+Utilisateurs
+Demandes de comptes
+Options
+Groupes
+Modules
+Enseignants
+Salles
+Réservations
+Planning global
+Équipements
+Notifications
+Historique
+Paramètres
+
+COORDINATEUR :
+
+Dashboard
+Mon option
+Groupes
+Modules
+Enseignants
+Trouver une salle
+Mes réservations
+Planning
+Mes notes
+Mes tâches
+Notifications
+
+ENSEIGNANT :
+
+Dashboard
+Mon planning
+Mes modules
+Mes réservations
+Notifications
+
+============================================================
+46. DONNÉES INITIALES DES SALLES
+============================================================
+
+Créer uniquement les salles réelles suivantes :
+
+RDC :
+S01
+S02
+S03
+S04
+S05
+S12-RDC
+S13
+
+1ER :
+S06
+S07
+S08
+S09
+S10
+S11
+S12-1ER
+
+AMPHI :
+AMPHI
+
+S12-1ER :
+
+status = RESERVED
+reserved_for = MASTER MANAGEMENT
+is_available_for_normal_booking = false
+
+Toutes les autres salles :
+
+status = ACTIVE
+is_available_for_normal_booking = true
+
+AMPHI :
+
+status = ACTIVE
+is_available_for_normal_booking = true
+
+============================================================
+47. AUCUNE FAUSSE DONNÉE
+============================================================
+
+NE PAS créer :
+
+- faux enseignants
+- faux étudiants
+- faux groupes
+- fausses réservations
+- faux emplois du temps.
+
+Les données de référence des salles ci-dessus peuvent être initialisées.
+
+Le planning doit commencer vide.
+
+============================================================
+48. TESTS AVANT LIVRAISON
+============================================================
+
+Tester obligatoirement :
+
+1. Création d’un compte.
+
+2. Vérification email.
+
+3. Validation par administration.
+
+4. Demande de 1 option.
+
+5. Demande de 3 options.
+
+6. Refus d’une option.
+
+7. Validation d’une option.
+
+8. Sélection de l’option active.
+
+9. Recherche d’une salle.
+
+10. Réservation.
+
+11. Détection des chevauchements.
+
+12. Modification.
+
+13. Annulation.
+
+14. Reprogrammation.
+
+15. Synchronisation temps réel.
+
+16. Protection des réservations des autres options.
+
+17. S12-1ER exclue des recherches.
+
+18. S12-RDC disponible.
+
+19. AMPHI disponible selon planning.
+
+20. Nombre d’étudiants non utilisé comme filtre.
+
+21. Planning lundi-samedi.
+
+22. Impression PDF.
+
+23. Export Excel.
+
+24. QR code.
+
+25. Mobile responsive.
+
+============================================================
+49. RÈGLE CRITIQUE SUR LE NOMBRE D’ÉTUDIANTS
+============================================================
+
+IMPORTANT :
+
+NE JAMAIS créer une logique du type :
+
+« Si nombre d’étudiants > capacité de la salle → salle indisponible ».
+
+Cette logique est INTERDITE.
+
+Le nombre d’étudiants est seulement une donnée informative.
+
+Toutes les salles disponibles doivent pouvoir être proposées.
+
+============================================================
+50. RÈGLE CRITIQUE SUR S12-1ER
+============================================================
+
+S12-1ER est la seule salle normale exclue automatiquement de la recherche générale car elle est réservée toute l’année au Master Management.
+
+L’administration peut la voir.
+
+Les coordinateurs peuvent voir son statut.
+
+Mais elle ne doit pas être proposée pour une réservation normale.
+
+============================================================
+51. RÈGLE CRITIQUE SUR LES CONFLITS
+============================================================
+
+Une salle ne peut jamais avoir deux réservations qui se chevauchent.
+
+Cette règle doit être garantie par la base de données.
+
+Exemple :
+
+08:00–10:00
+
+bloque :
+
+08:30–09:30
+09:00–11:00
+09:30–10:30
+
+mais permet :
+
+10:00–12:00.
+
+============================================================
+52. PRODUCTION READY
+============================================================
+
+Ne pas considérer l’application comme terminée simplement parce que l’interface fonctionne.
+
+Avant de déclarer :
+
+« Application terminée »
+
+vérifier :
+
+- base de données fonctionnelle
+- authentification fonctionnelle
+- rôles fonctionnels
+- permissions fonctionnelles
+- réservation fonctionnelle
+- absence de conflits
+- temps réel fonctionnel
+- responsive fonctionnel
+- impression fonctionnelle
+- export fonctionnel
+- sécurité fonctionnelle
+- données persistantes
+- gestion des erreurs
+- aucun faux planning.
+
+============================================================
+53. DÉPLOIEMENT
+============================================================
+
+Préparer l’application pour un déploiement public.
+
+Elle doit pouvoir être utilisée par :
+
+- administration ISPITS
+- coordinateurs
+- enseignants.
+
+Prévoir :
+
+HTTPS
+URL publique
+Base de données persistante
+Authentification
+Gestion des sessions.
+
+Préparer également la possibilité d’utiliser ultérieurement un domaine personnalisé tel que :
+
+smartsalle-ispits.ma
+
+============================================================
+54. PAGE PARAMÈTRES
+============================================================
+
+Créer :
+
+PARAMÈTRES
+
+L’administration peut configurer :
+
+- nom de l’établissement
+- logo
+- horaires
+- jours de travail
+- semestre
+- année universitaire
+- texte d’en-tête PDF
+- signatures
+- paramètres des notifications.
+
+============================================================
+55. RÉSULTAT FINAL ATTENDU
+============================================================
+
+Créer une application complète appelée :
+
+SMARTSALLE ISPITS
+
+qui permet à l’ISPITS de gérer réellement :
+
+SALLES
+RÉSERVATIONS
+OPTIONS
+GROUPES
+MODULES
+ENSEIGNANTS
+EMPLOIS DU TEMPS
+UTILISATEURS
+NOTIFICATIONS
+TÂCHES
+NOTES
+QR CODES
+EXPORTS
+HISTORIQUE.
+
+L’application doit être :
+
+PROFESSIONNELLE
+SÉCURISÉE
+RAPIDE
+RESPONSIVE
+MULTI-UTILISATEURS
+TEMPS RÉEL
+ÉVOLUTIVE.
+
+IMPORTANT :
+
+CRÉER L’APPLICATION À PARTIR DE ZÉRO.
+
+NE PAS FAIRE UNE SIMPLE MAQUETTE.
+
+NE PAS SIMULER LES RÉSERVATIONS AVEC DES DONNÉES STATIQUES.
+
+UTILISER UNE VRAIE BASE DE DONNÉES.
+
+UTILISER UNE VRAIE AUTHENTIFICATION.
+
+UTILISER DE VRAIES PERMISSIONS.
+
+UTILISER UNE VRAIE PROTECTION CONTRE LES CONFLITS.
+
+UTILISER LA SYNCHRONISATION TEMPS RÉEL.
+
+NE PAS AJOUTER DE CAPACITÉ DE SALLE.
+
+NE PAS UTILISER LE NOMBRE D’ÉTUDIANTS POUR FILTRER LES SALLES.
+
+S12-1ER = MASTER MANAGEMENT TOUTE L’ANNÉE.
+
+AMPHI = ENTRÉE ISPITS À GAUCHE.
+
+LES DEUX SALLES 12 DOIVENT RESTER DISTINCTES :
+
+S12-RDC
+S12-1ER
+
+À LA FIN, FOURNIR UN RAPPORT DE CONTRÔLE INDIQUANT :
+
+- fonctionnalités créées
+- base de données créée
+- rôles créés
+- permissions
+- salles initialisées
+- tests effectués
+- éventuels problèmes restants
+- étapes nécessaires pour publier l’application.

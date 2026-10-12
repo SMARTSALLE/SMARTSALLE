@@ -1,0 +1,45 @@
+# Secrets locaux — les vraies valeurs sont centralisees dans Infisical.
+# Ne jamais committer ces fichiers.
+.env
+.env.local
+.env.*.local
+.env.backup
+
+# Dependances et donnees locales
+node_modules/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/initial-admin.txt
+data/outbox/
+data/*.log
+data/test-report.json
+
+# Dossier local de l'editeur Freebuff (donnees runtime hors projet).
+.freebuff/sponsored-runtime/
+
+# Fichiers de travail temporaires (cookies de session, codes de verification,
+# journaux, scripts de test jetables, runtime Node local). Rien de tout ceci
+# n'est supprime du disque : ce sont uniquement des exclusions d'index Git.
+.tmp/
+tmp/
+.tools/
+tools/runtime/
+api-test.db
+svc-test.db
+tmp-race-probe.js
+race.js
+race2.js
+chk.js
+ids.js
+a.json
+b.json
+c.json
+d.json
+e.json
+t.json
+t2.json
+t3.json
+
+# Clone du depot de profil GitHub (repo imbrique, pas un sous-module).
+SMARTSALLE/
