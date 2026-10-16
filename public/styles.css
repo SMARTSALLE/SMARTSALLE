@@ -565,7 +565,8 @@ table.pg-grid td.pg-cell.closed { background: #efefef; }
 /* Plein écran : la feuille occupe seule l’écran */
 body.sheet-full { background: #e9edf3; }
 body.sheet-full .sidebar, body.sheet-full .topbar, body.sheet-full .bottom-nav,
-body.sheet-full .mobile-head, body.sheet-full .page-head .actions { display: none !important; }
+body.sheet-full .mobile-head, body.sheet-full .page-head .actions,
+body.sheet-full .app-foot, body.sheet-full .to-top-fab, body.sheet-full .nav-backdrop { display: none !important; }
 body.sheet-full .main { margin-left: 0 !important; }
 body.sheet-full .content { max-width: none; padding: 12px; }
 body.sheet-full .print-sheet { background: #fff; border-radius: 12px; box-shadow: 0 6px 26px rgba(0, 0, 0, .12); padding: 18px; }
@@ -616,6 +617,123 @@ body.sheet-full .sheet-toolbar { position: sticky; top: 0; z-index: 4; backgroun
   .filters select, .filters input { flex: 1; min-width: 130px; }
 }
 
+/* ==========================================================================
+   NAVIGATION — barre principale publique, pied de page, retour en haut,
+   voile du menu latéral mobile.
+   ========================================================================== */
+
+/* Coquille des pages publiques : nav en haut, contenu, pied de page */
+.public-page {
+  min-height: 100vh; display: flex; flex-direction: column; background: #fff;
+}
+.public-page .auth-wrap { flex: 1; min-height: 0; }
+
+/* ---------- Barre de navigation principale (pages publiques) ---------- */
+.site-nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255,255,255,.96); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line); box-shadow: 0 1px 2px rgba(16,24,40,.04);
+}
+.site-nav-inner {
+  max-width: 1240px; margin: 0 auto; min-height: 58px;
+  display: flex; align-items: center; gap: 12px; padding: 8px 18px;
+}
+.site-brand { display: flex; align-items: center; gap: 10px; color: var(--text); min-width: 0; }
+.site-brand:hover { text-decoration: none; }
+.site-mark {
+  width: 34px; height: 34px; border-radius: 9px; overflow: hidden; flex: none;
+  background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 800;
+}
+.site-mark img { width: 100%; height: 100%; object-fit: cover; }
+.site-brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.site-brand-text b { font-size: 14px; letter-spacing: .7px; color: var(--brand); }
+.site-brand-text em { font-style: normal; font-size: 10px; letter-spacing: 1.5px; color: var(--muted); }
+.site-links { margin-left: auto; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.site-link {
+  padding: 8px 12px; border-radius: 9px; font-size: 14px; font-weight: 600; color: #334155;
+  white-space: nowrap; transition: background .15s, color .15s;
+}
+.site-link:hover { background: var(--brand-soft); color: var(--brand); text-decoration: none; }
+.site-link.active { background: var(--brand); color: #fff; }
+.site-burger {
+  display: none; margin-left: auto; width: 42px; height: 40px; border-radius: 10px;
+  border: 1px solid var(--line-strong); background: #fff; color: var(--text); font-size: 17px;
+  cursor: pointer; place-items: center;
+}
+.site-burger:hover { background: var(--surface-2); }
+
+/* ---------- Pied de page (pages publiques) ---------- */
+.site-foot { margin-top: auto; background: var(--surface-2); border-top: 1px solid var(--line); }
+.site-foot-inner {
+  max-width: 1240px; margin: 0 auto; padding: 16px 18px 20px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+}
+.site-foot-links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.site-foot-links a { font-size: 13.5px; color: var(--muted); }
+.site-foot-links a:hover { color: var(--brand); }
+.site-foot-copy { width: 100%; font-size: 12px; color: var(--muted); }
+
+/* ---------- Pied de page de l'espace connecté ---------- */
+.app-foot {
+  max-width: 1440px; width: 100%; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px 16px; padding: 14px 22px 22px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 12.5px;
+}
+.app-foot-links { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.app-foot a { color: var(--muted); }
+.app-foot a:hover { color: var(--brand); }
+.app-foot-sep { opacity: .5; }
+
+/* ---------- Retour en haut ---------- */
+.to-top-fab {
+  position: fixed; right: 18px; bottom: 24px; z-index: 120;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line-strong);
+  background: #fff; color: var(--brand); font-size: 19px; font-weight: 800; cursor: pointer;
+  box-shadow: var(--shadow-lg); display: grid; place-items: center;
+  opacity: 0; visibility: hidden; transform: translateY(10px);
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.to-top-fab:hover { background: var(--brand-soft); border-color: var(--brand-2); }
+.to-top-fab.show { opacity: 1; visibility: visible; transform: none; }
+.to-top-inline { flex: none; }
+
+/* ---------- Voile du menu latéral (petits écrans) ---------- */
+.nav-backdrop {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 35;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility .2s;
+}
+.nav-backdrop.show { opacity: 1; visibility: visible; pointer-events: auto; }
+
+/* ---------- Responsive : navigation ---------- */
+@media (max-width: 900px) {
+  .site-burger { display: grid; }
+  .site-links {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 2px;
+    background: #fff; border-bottom: 1px solid var(--line); box-shadow: var(--shadow-lg);
+    padding: 8px 10px 12px; margin-left: 0;
+  }
+  .site-links.open { display: flex; }
+  .site-link { padding: 12px 14px; font-size: 15px; }
+  .site-foot-inner { padding: 14px 14px 18px; }
+}
+@media (min-width: 901px) {
+  .nav-backdrop { display: none; }
+}
+@media (max-width: 1024px) {
+  /* Le menu latéral passe au-dessus de la barre d'onglets basse : aucun
+     élément du menu (dont « Déconnexion ») n'est masqué. */
+  .sidebar { z-index: 70; }
+  .sidebar-foot { padding-bottom: 24px; }
+  .to-top-fab { bottom: 78px; right: 14px; }
+  .app-foot { padding: 14px 14px 18px; }
+}
+@media (max-width: 560px) {
+  .site-brand-text b { font-size: 13px; }
+  .site-nav-inner { padding: 8px 12px; }
+  .app-foot { flex-direction: column; align-items: flex-start; }
+}
+
 /* ---------- Impression (A4 paysage) ---------- */
 @page { size: A4 landscape; margin: 10mm; }
 @media print {
@@ -626,7 +744,8 @@ body.sheet-full .sheet-toolbar { position: sticky; top: 0; z-index: 4; backgroun
      la mise en page, donc la pagination voit la hauteur réduite — aucun
      débordement sur une deuxième page. */
   .print-sheet { zoom: 0.92; }
-  .sidebar, .topbar, .bottom-nav, .no-print, .toasts, .filters, .page-head .actions, .mobile-head { display: none !important; }
+  .sidebar, .topbar, .bottom-nav, .no-print, .toasts, .filters, .page-head .actions, .mobile-head,
+  .site-nav, .site-foot, .app-foot, .to-top-fab, .nav-backdrop { display: none !important; }
   .main { margin: 0 !important; padding: 0 !important; }
   .content { padding: 0 !important; max-width: none; }
   .print-only { display: block !important; }

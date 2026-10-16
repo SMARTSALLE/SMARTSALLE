@@ -89,8 +89,9 @@ function requireAuth(req) {
   if (!user) throw new ApiError(401, 'UNAUTHENTICATED', 'Authentification requise');
   if (user.status === 'refused') throw new ApiError(403, 'ACCOUNT_REFUSED', 'Votre compte a été refusé par l’administration.');
   if (user.status === 'suspended') throw new ApiError(403, 'ACCOUNT_SUSPENDED', 'Votre compte est suspendu.');
-  if (user.status !== 'active') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente : vérification email + validation administrative requises.');
-  if (!user.email_verified) throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Adresse email non vérifiée.');
+  /* La vérification email a été supprimée : seule la validation administrative
+     ouvre l’accès aux fonctionnalités protégées. */
+  if (user.status !== 'active') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente : validation administrative requise.');
   return user;
 }
 

@@ -3,6 +3,12 @@
 **Date :** 8 octobre 2026 · **Node :** v24.21.0 · **Serveur :** `http://localhost:3000` (PID démarré avec `PORT=3000` explicite)
 **Périmètre :** correction du client SMTP, statut de livraison email, écran de vérification, page principale.
 
+> ⚠️ **Rapport historique (8 octobre 2026).** Depuis le **16 octobre 2026**, l'étape de vérification par code
+> email à l'inscription a été supprimée (compte créé « en attente de validation administrative », SMTP non requis)
+> et une navigation commune a été ajoutée (barre principale publique, menu latéral par rôle, retour en haut).
+> Les contrôles 3, 4, 7 et l'écran de vérification mentionnés ci-dessous décrivent l'application telle qu'elle
+> était à cette date. Le référentiel actuel est `npm test` → **305 / 305 tests réussis**.
+
 ---
 
 ## 1. Résumé exécutif

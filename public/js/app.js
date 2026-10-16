@@ -63,7 +63,10 @@ const ROUTES = [
   { path: '/', public: true, view: () => ViewHome() },
   { path: '/login', public: true, view: () => ViewLogin() },
   { path: '/register', public: true, view: () => ViewRegister() },
-  { path: '/verify', public: true, view: () => ViewVerify() },
+  /* Confirmation d'inscription : le compte est « en attente de validation
+     administrative ». `/verify` (ancien lien) pointe vers la même page. */
+  { path: '/pending', public: true, view: () => ViewAccountPending() },
+  { path: '/verify', public: true, view: () => ViewAccountPending() },
   { path: '/forgot', public: true, view: () => ViewForgot() },
   { path: '/r/:token', public: true, view: (p) => ViewPublicRoom(p.token) },
   { path: '/dashboard', title: 'Dashboard', view: () => ViewDashboard() },
@@ -185,9 +188,9 @@ async function renderPass() {
     }
     const route = match.route;
 
-    // Pages publiques
+    // Pages publiques : barre de navigation principale en haut + pied de page
     if (route.public) {
-      mount(document.getElementById('app'), route.view(match.params, query));
+      mount(document.getElementById('app'), publicShell(path, route.view(match.params, query)));
       document.title = 'SmartSalle ISPITS';
       return;
     }
@@ -207,7 +210,6 @@ async function renderPass() {
       mount(document.getElementById('app'), accountPendingScreen());
       return;
     }
-    if (!APP.user.email_verified) { navigateTo('/verify'); return; }
 
     // Restrictions de rôle (côté serveur aussi)
     if (route.roles && !route.roles.includes(APP.user.role)) {
@@ -246,40 +248,63 @@ async function renderPass() {
   } catch (e) {
     console.error(e);
     if (e && e.status === 401) { APP.user = null; navigateTo('/login'); return; }
-    mount(document.getElementById('app'), h('div', { class: 'content' },
+    const { path: errPath } = parseHash();
+    const errMatch = matchRoute(errPath);
+    const errCard = h('div', { class: 'content' },
       h('div', { class: 'card' },
         h('div', { class: 'empty' }, h('span', { class: 'big' }, '⚠️'), errorMessage(e)),
-        h('div', { style: { textAlign: 'center' } }, h('button', { class: 'btn', onclick: () => window.refresh() }, 'Réessayer')))));
+        h('div', { style: { textAlign: 'center' } }, h('button', { class: 'btn', onclick: () => window.refresh() }, 'Réessayer'))));
+    // Sur une page publique, on conserve la navigation pour ne pas isoler l'utilisateur.
+    mount(document.getElementById('app'), (errMatch && errMatch.route.public) ? publicShell(errPath, errCard) : errCard);
   }
 }
 
+/* Espace connecté mais compte encore en attente / refusé / suspendu :
+   navigation publique conservée pour ne jamais isoler l'utilisateur. */
 function accountPendingScreen() {
   const u = APP.user;
-  return h('div', { class: 'auth-wrap' },
-    authHero(),
-    h('div', { class: 'auth-panel' },
-      h('div', { class: 'auth-card' },
-        h('h2', {}, 'Compte en attente'),
-        h('div', { class: 'sub' }, `${u.prenom} ${u.nom} — ${u.email}`),
-        h('div', { class: 'card', style: { borderLeft: '4px solid var(--warn)' } },
-          h('div', { style: { display: 'grid', gap: '9px' } },
-            h('div', {}, u.email_verified ? badge('Email vérifié', 'ok') : badge('Email non vérifié', 'warn'), ' ',
-              u.status === 'active' ? badge('Compte validé', 'ok') : badge('Validation administrative requise', 'warn')),
-            h('p', { class: 'help', style: { margin: '4px 0 0' } },
-              'Votre compte sera activé après vérification de votre email puis validation par l’administration ISPITS. Vous serez notifié dès sa validation.'),
-            h('div', { style: { display: 'flex', gap: '9px', flexWrap: 'wrap' } },
-              !u.email_verified ? h('a', { class: 'btn', href: '#/verify' }, 'Vérifier mon email') : null,
-              h('a', { class: 'btn secondary', href: '#/login' }, 'Aller à la connexion'),
-              h('button', {
-                class: 'btn secondary', onclick: async () => {
-                  try {
-                    const res = await post('/api/auth/logout');
-                    void res;
-                    APP.user = null;
-                    navigateTo('/login');
-                  } catch (e) { toast(errorMessage(e), 'err'); }
-                }
-              }, 'Se déconnecter')))))));
+  const label = STATUS_LABEL[u.status] || 'En attente de validation administrative';
+  const isRefused = u.status === 'refused';
+  const isSuspended = u.status === 'suspended';
+  return publicShell('/login',
+    h('div', { class: 'auth-wrap' },
+      authHero(),
+      h('div', { class: 'auth-panel' },
+        h('div', { class: 'auth-card' },
+          h('h2', {}, isRefused ? 'Demande refusée' : (isSuspended ? 'Compte suspendu' : 'Compte en attente')),
+          h('div', { class: 'sub' }, `${u.prenom} ${u.nom} — ${u.email}`),
+          h('div', { class: 'card', style: { borderLeft: '4px solid var(--warn)' } },
+            h('div', { style: { display: 'grid', gap: '9px' } },
+              h('div', {}, badge(label, isRefused ? 'danger' : 'warn')),
+              h('p', { class: 'help', style: { margin: '4px 0 0', lineHeight: 1.6 } },
+                isRefused
+                  ? 'Votre demande de compte a été refusée par l’administration. Contactez l’administration ISPITS pour plus d’informations.'
+                  : (isSuspended
+                    ? 'Votre compte a été suspendu par l’administration. Contactez l’administration ISPITS.'
+                    : 'Votre compte sera activé après validation par l’administration ISPITS. L’accès aux fonctionnalités protégées reste bloqué jusqu’à cette approbation ; vous serez notifié dès sa validation.')),
+              h('div', { style: { display: 'flex', gap: '9px', flexWrap: 'wrap' } },
+                h('a', { class: 'btn secondary', href: '#/login' }, 'Aller à la connexion'),
+                h('button', {
+                  class: 'btn secondary', onclick: async () => {
+                    try {
+                      const res = await post('/api/auth/logout');
+                      void res;
+                      APP.user = null;
+                      navigateTo('/login');
+                    } catch (e) { toast(errorMessage(e), 'err'); }
+                  }
+                }, 'Se déconnecter'))))))));
+}
+
+function sidebarEl() { return document.querySelector('.sidebar'); }
+function sidebarBackdrop() { return document.querySelector('.nav-backdrop'); }
+/* Menu latéral (mobile) : ouverture/fermeture avec voile de fond. */
+function closeSidebar() { sidebarEl()?.classList.remove('open'); sidebarBackdrop()?.classList.remove('show'); }
+function toggleSidebar() {
+  const s = sidebarEl();
+  if (!s) return;
+  const open = s.classList.toggle('open');
+  sidebarBackdrop()?.classList.toggle('show', open);
 }
 
 function buildShell() {
@@ -287,14 +312,14 @@ function buildShell() {
   const { path } = parseHash();
   const menu = MENUS[user.role] || [];
 
-  const nav = h('nav', {}, menu.map((item) => {
+  const nav = h('nav', { 'aria-label': 'Navigation de l’espace connecté' }, menu.map((item) => {
     if (item.section) return h('div', { class: 'nav-section' }, item.section);
     const active = path === item.path || (item.path !== '/dashboard' && path.startsWith(item.path));
     const count = item.badge ? item.badge() : 0;
     return h('a', {
       class: `nav-link${active ? ' active' : ''}`,
       href: `#${item.path}`,
-      onclick: () => { document.querySelector('.sidebar')?.classList.remove('open'); }
+      onclick: closeSidebar
     },
       h('span', { class: 'ico' }, item.icon),
       h('span', {}, item.label),
@@ -317,7 +342,10 @@ function buildShell() {
 
   const topbar = h('header', { class: 'topbar' },
     h('div', { class: 'mobile-head' },
-      h('button', { class: 'icon-btn', onclick: () => document.querySelector('.sidebar').classList.toggle('open') }, '☰')),
+      h('button', {
+        class: 'icon-btn', 'aria-label': 'Ouvrir le menu', 'aria-expanded': 'false',
+        onclick: toggleSidebar
+      }, '☰')),
     h('h1', {}, (matchRoute(path) && matchRoute(path).route.title) || 'SmartSalle'),
     h('div', { class: 'spacer' }),
     h('div', { class: 'searchbox' },
@@ -337,13 +365,25 @@ function buildShell() {
         h('span', {}, roleLabel(user.role) + (user.active_option ? ` · ${user.active_option.code}` : '')))));
 
   const bottomItems = (MENUS[user.role] || []).filter((m) => m.path).slice(0, 5);
-  const bottomNav = h('nav', { class: 'bottom-nav' },
+  const bottomNav = h('nav', { class: 'bottom-nav', 'aria-label': 'Navigation rapide' },
     bottomItems.map((m) => h('a', { class: path === m.path ? 'active' : '', href: `#${m.path}` },
       h('span', { class: 'ico' }, m.icon), h('span', {}, m.label.split(' ')[0]))));
 
+  /* Pied de page des pages longues : retour en haut en un clic. */
+  const appFoot = h('footer', { class: 'app-foot' },
+    h('div', { class: 'app-foot-links' },
+      h('span', {}, `${APP.settings.app_name || 'SmartSalle ISPITS'} — ${APP.settings.institution_name || 'ISPITS Laâyoune'}`),
+      h('span', { class: 'app-foot-sep' }, '·'),
+      h('a', { href: '#/dashboard' }, 'Tableau de bord'),
+      h('a', { href: '#/notifications' }, 'Notifications')),
+    h('button', { class: 'btn secondary sm to-top-inline', type: 'button', onclick: scrollTopTop }, '↑ Retour en haut'));
+
+  const backdrop = h('div', { class: 'nav-backdrop', 'aria-hidden': 'true', onclick: closeSidebar });
+
   return h('div', { class: 'app-shell' },
     sidebar,
-    h('div', { class: 'main' }, topbar, h('main', { class: 'content', id: 'content' })),
+    backdrop,
+    h('div', { class: 'main' }, topbar, h('main', { class: 'content', id: 'content' }), appFoot),
     bottomNav);
 }
 
@@ -469,6 +509,8 @@ function restoreRouteFromPath() {
 
 async function boot() {
   restoreRouteFromPath();
+  // Bouton flottant « Retour en haut » (hors #app : survit à tous les rendus).
+  ensureTopFab();
   try {
     const me = await get('/api/auth/me');
     APP.user = me.user;

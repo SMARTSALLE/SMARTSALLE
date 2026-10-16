@@ -66,23 +66,20 @@ module.exports = function registerAuthRoutes(router) {
       db.audit({ id: userId, label: email }, 'CREATION_COMPTE', 'user', userId, null,
         { nom, prenom, email, role, options_demandees: optionIds.length });
 
-      const user = { id: userId, nom, prenom, email, role };
-      const sent = await mail.sendVerificationEmail(user, 'verify_email');
       notifyAdmins('account_request', 'Nouvelle demande de compte',
         `${prenom} ${nom} (${email}) demande le rôle ${role.toUpperCase()}`, '#/admin/requests');
 
+      /* Plus de vérification par code email : le compte naît « en attente de
+         validation administrative » et reste inutilisable tant que
+         l’administration ne l’a pas approuvé. Aucun envoi SMTP n’est requis
+         pour s’inscrire (la délivrance reste vérifiable dans data/outbox). */
       return created(res, {
         ok: true,
-        needs_verification: true,
+        status: 'pending',
+        needs_verification: false,
         email,
-        expires_minutes: sent.expires_minutes,
-        cooldown: sent.cooldown,
-        dev_code: sent.code || null,
-        // 'smtp' = envoyé réellement, 'outbox' = copie locale (SMTP non configuré).
-        delivery: sent.delivered,
-        message: sent.delivered === 'smtp'
-          ? 'Compte créé. Un code de vérification a été envoyé à votre adresse email.'
-          : 'Compte créé. SMTP non configuré : le code n’a pas été envoyé (copie locale dans data/outbox).'
+        message: 'Compte créé. Votre demande est en attente de validation administrative : '
+          + 'l’accès sera ouvert après approbation par l’administration ISPITS.'
       });
     } catch (e) {
       const mapped = mapDbError(e);
@@ -91,44 +88,21 @@ module.exports = function registerAuthRoutes(router) {
     }
   });
 
-  /* ---------------- VÉRIFICATION EMAIL ---------------- */
-  router.add('POST', '/api/auth/verify', async ({ req, res }) => {
-    const b = await readJson(req);
-    const email = str(b.email, 160).toLowerCase();
-    const code = str(b.code, 12);
-    const user = db.get().prepare('SELECT * FROM users WHERE email = ?').get(email);
-    if (!user) throw new ApiError(404, 'USER_NOT_FOUND', 'Aucun compte avec cet email.');
-    if (user.email_verified) return ok(res, { ok: true, already_verified: true });
-    const result = mail.verifyEmailCode(user.id, code, 'verify_email');
-    if (!result.ok) {
-      const map = {
-        CODE_EXPIRED: 'Code expiré. Demandez un nouveau code.',
-        INVALID_CODE: 'Code incorrect.',
-        TOO_MANY_ATTEMPTS: 'Trop de tentatives. Demandez un nouveau code.',
-        CODE_NOT_FOUND: 'Aucun code en cours. Demandez un nouveau code.'
-      };
-      throw new ApiError(400, result.reason, map[result.reason] || 'Code invalide.');
-    }
-    db.get().prepare('UPDATE users SET email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?').run(user.id);
-    db.audit({ id: user.id, label: user.email }, 'EMAIL_VERIFIE', 'user', user.id, null, { email: user.email });
-    notifyAdmins('account_verified', 'Email vérifié',
-      `${user.prenom} ${user.nom} a vérifié son adresse email.`, '#/admin/requests');
-    return ok(res, { ok: true, message: 'Adresse email vérifiée. En attente de validation administrative.' });
-  });
-
+  /* ---------------- RENVOI DE CODE (réinitialisation de mot de passe) -------
+     La vérification email à l’inscription n’existe plus : ce service ne sert
+     qu’au réinitialisation de mot de passe (purpose = reset_password). */
   router.add('POST', '/api/auth/resend-code', async ({ req, res }) => {
     const b = await readJson(req);
     const email = str(b.email, 160).toLowerCase();
-    const purpose = str(b.purpose, 30) || 'verify_email';
-    const user = db.get().prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const purpose = str(b.purpose, 30) || 'reset_password';
     // Réponse identique pour éviter l'énumération de comptes.
-    if (!user) return ok(res, { ok: true, message: 'Si le compte existe, un nouveau code a été envoyé.' });
-    if (user.email_verified && purpose === 'verify_email') {
-      return ok(res, { ok: true, message: 'Adresse déjà vérifiée.' });
-    }
+    const generic = { ok: true, message: 'Si le compte existe, un nouveau code a été envoyé.' };
+    if (purpose !== 'reset_password') return ok(res, generic);
+    const user = db.get().prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!user) return ok(res, generic);
     const wait = mail.cooldownRemaining(user.id, purpose);
     if (wait > 0) throw new ApiError(429, 'COOLDOWN', `Veuillez patienter ${wait} seconde(s) avant de redemander un code.`, { wait });
-    const sent = await mail.sendVerificationEmail(user, purpose);
+    const sent = await mail.sendPasswordResetEmail(user);
     return ok(res, {
       ok: true,
       message: 'Nouveau code envoyé.',
@@ -150,9 +124,8 @@ module.exports = function registerAuthRoutes(router) {
     const b = await readJson(req);
     const email = str(b.email, 160).toLowerCase();
     const user = email ? db.get().prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
-    // Seuls les emails vérifiés peuvent être réinitialisés (les autres utilisent
-    // le flux de vérification). Sinon : réponse générique, aucun code envoyé.
-    if (!user || !user.email_verified) return ok(res, forgotGeneric);
+    // Compte introuvable : réponse générique, aucun code envoyé (pas d'énumération).
+    if (!user) return ok(res, forgotGeneric);
     const wait = mail.cooldownRemaining(user.id, 'reset_password');
     if (wait > 0) throw new ApiError(429, 'COOLDOWN', `Veuillez patienter ${wait} seconde(s) avant de redemander un code.`, { wait });
     const sent = await mail.sendPasswordResetEmail(user);
@@ -176,7 +149,7 @@ module.exports = function registerAuthRoutes(router) {
     // Même message que "compte inconnu" et que "code invalide" : aucune fuite d'information.
     const invalid = new ApiError(400, 'RESET_INVALID', 'Code incorrect ou expiré, ou compte introuvable.');
     const user = email ? db.get().prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
-    if (!user || !user.email_verified) throw invalid;
+    if (!user) throw invalid;
     const result = mail.verifyEmailCode(user.id, code, 'reset_password');
     if (!result.ok) {
       const map = {
@@ -207,8 +180,7 @@ module.exports = function registerAuthRoutes(router) {
     if (!user || !checkPassword(password, user.password_hash)) {
       throw new ApiError(401, 'BAD_CREDENTIALS', 'Email ou mot de passe incorrect.');
     }
-    if (!user.email_verified) throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Adresse email non vérifiée. Consultez votre boîte mail.', { email });
-    if (user.status === 'pending') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente de validation par l’administration.');
+    if (user.status === 'pending') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente de validation administrative. L’administration doit d’abord approuver votre demande.', { email });
     if (user.status === 'refused') throw new ApiError(403, 'ACCOUNT_REFUSED', 'Votre demande de compte a été refusée.');
     if (user.status === 'suspended') throw new ApiError(403, 'ACCOUNT_SUSPENDED', 'Compte suspendu.');
 
@@ -228,7 +200,7 @@ module.exports = function registerAuthRoutes(router) {
     const user = currentUser(req);
     if (!user) return ok(res, { user: null });
     const d = db.get();
-    const pendingCount = d.prepare("SELECT COUNT(*) AS c FROM users WHERE status = 'pending' AND email_verified = 1").get().c;
+    const pendingCount = d.prepare("SELECT COUNT(*) AS c FROM users WHERE status = 'pending'").get().c;
     const unread = d.prepare('SELECT COUNT(*) AS c FROM notifications WHERE (user_id = ? OR user_id IS NULL) AND read_at IS NULL').get(user.id).c;
     return ok(res, {
       user,

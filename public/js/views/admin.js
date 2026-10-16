@@ -92,7 +92,6 @@ function ViewAdminUsers() {
       { key: 'prenom', label: 'Nom complet', render: (u) => h('div', {}, h('b', {}, `${u.prenom} ${u.nom}`), h('div', { class: 'help' }, u.email)) },
       { key: 'role', label: 'Rôle', render: (u) => badge(roleLabel(u.role), roleKind(u.role)) },
       { key: 'status', label: 'Statut', render: (u) => statusBadge(u.status) },
-      { key: 'email_verified', label: 'Email', render: (u) => u.email_verified ? badge('VÉRIFIÉ', 'ok') : badge('NON VÉRIFIÉ', 'warn') },
       { key: 'options', label: 'Options', render: (u) => u.options.length ? u.options.map((o) => badge(o.code, o.status === 'APPROVED' ? 'ok' : (o.status === 'REJECTED' ? 'danger' : 'warn'))) : '—' },
       { key: 'created_at', label: 'Demande', render: (u) => String(u.created_at).slice(0, 16) },
       {
@@ -100,7 +99,7 @@ function ViewAdminUsers() {
           h('button', { class: 'btn sm secondary', onclick: () => openForm(u) }, '✏️'),
           u.status === 'active'
             ? h('button', { class: 'btn sm warn', onclick: async () => { await post(`/api/admin/accounts/${u.id}/status`, { status: 'suspended' }); toast('Compte suspendu.', 'ok'); reload(); } }, 'Suspendre')
-            : h('button', { class: 'btn sm ok', onclick: async () => { await post(`/api/admin/accounts/${u.id}/validate`, { force: true }); toast('Compte validé.', 'ok'); reload(); } }, 'Valider'),
+            : h('button', { class: 'btn sm ok', onclick: async () => { await post(`/api/admin/accounts/${u.id}/validate`, {}); toast('Compte validé.', 'ok'); reload(); } }, 'Valider'),
           h('button', {
             class: 'btn sm danger', onclick: async () => {
               const ok2 = await confirmBox({ title: 'Supprimer le compte', message: `Supprimer définitivement ${u.email} ?`, confirmLabel: 'Supprimer', danger: true });
@@ -128,7 +127,6 @@ async function ViewAdminRequests() {
       { key: 'prenom', label: 'Nom', render: (a) => h('div', {}, h('b', {}, `${a.prenom} ${a.nom}`), h('div', { class: 'help' }, a.email)) },
       { key: 'role', label: 'Rôle', render: (a) => badge(roleLabel(a.role), roleKind(a.role)) },
       { key: 'options', label: 'Options demandées', render: (a) => a.options.length ? a.options.map((o) => badge(o.code, o.status === 'APPROVED' ? 'ok' : (o.status === 'REJECTED' ? 'danger' : 'warn'))) : '—' },
-      { key: 'email_verified', label: 'Email vérifié', render: (a) => a.email_verified ? badge('OUI', 'ok') : badge('NON', 'warn') },
       { key: 'created_at', label: 'Date de demande', render: (a) => String(a.created_at).slice(0, 16) },
       { key: 'status', label: 'Statut', render: (a) => statusBadge(a.status) },
       {
@@ -137,7 +135,7 @@ async function ViewAdminRequests() {
             class: 'btn sm ok',
             onclick: async () => {
               try {
-                const res2 = await post(`/api/admin/accounts/${a.id}/validate`, { approve_options: a.role === 'coordinateur', force: a.email_verified ? undefined : true });
+                const res2 = await post(`/api/admin/accounts/${a.id}/validate`, { approve_options: a.role === 'coordinateur' });
                 toast(res2.message + (res2.approved_options ? ` (${res2.approved_options} option(s) approuvée(s))` : ''), 'ok');
                 drawAccounts();
               } catch (e) { toast(errorMessage(e), 'err'); }
@@ -161,7 +159,6 @@ async function ViewAdminRequests() {
     mount(boxOptions, table([
       { key: 'prenom', label: 'Responsable', render: (r) => h('div', {}, h('b', {}, `${coordinatorTitle(r.gender)} ${r.prenom} ${r.nom}`), h('div', { class: 'help' }, r.email)) },
       { key: 'code', label: 'Option demandée', render: (r) => badge(r.code, 'brand') },
-      { key: 'email_verified', label: 'Email', render: (r) => r.email_verified ? badge('VÉRIFIÉ', 'ok') : badge('NON', 'warn') },
       { key: 'requested_at', label: 'Date', render: (r) => String(r.requested_at).slice(0, 16) },
       { key: 'status', label: 'Statut', render: (r) => statusBadge(r.status) },
       {
@@ -183,7 +180,7 @@ async function ViewAdminRequests() {
   }
 
   mount(root,
-    pageHead('Demandes de comptes', 'Vérification email + validation administrative requises avant toute connexion',
+    pageHead('Demandes de comptes', 'Validation administrative requise avant toute connexion',
       [h('a', { class: 'btn secondary', href: '#/admin/users' }, 'Tous les comptes')]),
     h('div', { class: 'card' },
       h('div', { class: 'card-head' }, h('h3', {}, '📨 Demandes de comptes')), boxAccounts),
@@ -554,8 +551,7 @@ async function ViewSettings() {
     fields: [
       { name: 'notify_reservations', label: 'Notifications de réservation (créée / annulée)', type: 'checkbox' },
       { name: 'notify_accounts', label: 'Notifications de comptes', type: 'checkbox' },
-      { name: 'notify_tasks', label: 'Rappels de tâches', type: 'checkbox' },
-      { name: 'expose_dev_codes', label: 'Afficher le code de vérification en local (hors production)', type: 'checkbox', help: 'À désactiver en production si SMTP configuré.' },
+      { name: 'notify_tasks', label: 'Rappels de tâches', type: 'checkbox' },        { name: 'expose_dev_codes', label: 'Afficher les codes de réinitialisation en local (hors production)', type: 'checkbox', help: 'À désactiver en production si SMTP configuré.' },
       { name: 'smtp_host', label: 'Serveur SMTP (vide = boîte locale data/outbox)', placeholder: 'smtp.host.ma', help: 'Tant que vide, aucun email n’est réellement envoyé (copie dans data/outbox).' },
       { name: 'smtp_port', label: 'Port SMTP', help: '587 = STARTTLS · 465 = TLS direct' },
       { name: 'smtp_secure', label: 'Chiffrement SMTP', type: 'select', options: [

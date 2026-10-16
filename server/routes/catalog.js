@@ -242,7 +242,7 @@ module.exports = function catalogRoutes(router) {
       base.reservations_today = s("SELECT COUNT(*) AS c FROM reservations WHERE day = ? AND status='CONFIRMED'").get(day).c;
       base.reservations_week = s("SELECT COUNT(*) AS c FROM reservations WHERE day BETWEEN ? AND ? AND status='CONFIRMED'").get(weekFrom, weekTo).c;
       base.pending_accounts = s("SELECT COUNT(*) AS c FROM users WHERE status='pending'").get().c;
-      base.pending_verified = s('SELECT COUNT(*) AS c FROM users WHERE status=\'pending\' AND email_verified = 1').get().c;
+      base.pending_verified = s('SELECT COUNT(*) AS c FROM users WHERE status=\'pending\'').get().c;
       base.pending_options = s("SELECT COUNT(*) AS c FROM coordinator_options WHERE status='REQUESTED'").get().c;
       base.users_total = s('SELECT COUNT(*) AS c FROM users').get().c;
       base.users_coord = s("SELECT COUNT(*) AS c FROM users WHERE role='coordinateur' AND status='active'").get().c;

@@ -79,55 +79,51 @@ async function main() {
     role: 'coordinateur', options: [1]
   });
   check('inscription coordinateur acceptée', r.status === 201, `HTTP ${r.status}`);
-  check('code de vérification renvoyé (SMTP non configuré → dev)', !!r.body.dev_code, r.body.dev_code);
-  const saraCode = r.body.dev_code;
+  check('aucun code de vérification à saisir (SMTP non requis)',
+    r.body.needs_verification === false && !r.body.dev_code,
+    JSON.stringify({ needs_verification: r.body.needs_verification, dev_code: r.body.dev_code || null }));
+  check('compte créé « en attente de validation administrative »', r.body.status === 'pending', r.body.status);
 
   r = await call(null, 'POST', '/api/auth/register', {
     nom: 'Benali', prenom: 'Karim', email: 'karim.ibo@test.ma', password: 'Secret123', password2: 'Secret123',
     role: 'coordinateur', options: [2]
   });
   check('2e coordinateur créé', r.status === 201, `HTTP ${r.status}`);
-  const karimCode = r.body.dev_code;
+  check('2e compte en attente, sans code', r.body.status === 'pending' && !r.body.dev_code, r.body.status);
 
   r = await call(null, 'POST', '/api/auth/register', {
     nom: 'Prof', prenom: 'Nadia', email: 'nadia.prof@test.ma', password: 'Secret123', password2: 'Secret123',
     role: 'enseignant'
   });
   check('inscription enseignant acceptée', r.status === 201, `HTTP ${r.status}`);
-  const nadiaCode = r.body.dev_code;
+  check('enseignant en attente, sans code', r.body.status === 'pending' && !r.body.dev_code, r.body.status);
 
   r = await call(null, 'POST', '/api/auth/register', {
     nom: 'X', prenom: 'Y', email: 'fake.admin@test.ma', password: 'Secret123', password2: 'Secret123', role: 'admin'
   });
   check('auto-inscription admin refusée', r.status === 403, `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
 
-  /* ============ 2. VÉRIFICATION EMAIL ============ */
-  section('2. Vérification email');
+  /* ============ 2. INSCRIPTION SANS VÉRIFICATION PAR CODE ============ */
+  section('2. Inscription sans vérification par code email');
   r = await call(null, 'POST', '/api/auth/verify', { email: 'sara.ip@test.ma', code: '000000' });
-  check('mauvais code refusé', r.status === 400, r.body.error && r.body.error.code);
-  r = await call(null, 'POST', '/api/auth/verify', { email: 'sara.ip@test.ma', code: saraCode });
-  check('bon code accepté', r.status === 200 && r.body.ok, `HTTP ${r.status}`);
-  const consumed = db.prepare(`SELECT consumed_at FROM email_codes ec JOIN users u ON u.id = ec.user_id
-    WHERE u.email = 'sara.ip@test.ma' ORDER BY ec.id DESC LIMIT 1`).get();
-  check('code à usage unique : marqué consommé en base', !!consumed && !!consumed.consumed_at, consumed && consumed.consumed_at);
-  r = await call(null, 'POST', '/api/auth/verify', { email: 'sara.ip@test.ma', code: saraCode });
-  check('rejeu du code → déjà vérifié (aucune régression)', r.status === 200 && r.body.already_verified === true, `HTTP ${r.status}`);
+  check('étape de vérification supprimée (route inexistante)', r.status === 404, `HTTP ${r.status}`);
+  const codesFor = (email) => db.prepare(`SELECT COUNT(*) AS c FROM email_codes ec JOIN users u ON u.id = ec.user_id WHERE u.email = ?`).get(email).c;
+  check('aucun code email créé à l’inscription', codesFor('sara.ip@test.ma') === 0, `${codesFor('sara.ip@test.ma')} code(s)`);
+  r = await call(null, 'POST', '/api/auth/resend-code', { email: 'sara.ip@test.ma', purpose: 'verify_email' });
+  check('renvoi de code de vérification désactivé (réponse générique)',
+    r.status === 200 && !r.body.dev_code, `HTTP ${r.status} dev_code=${r.body && r.body.dev_code}`);
+  check('toujours aucun code de vérification en base', codesFor('sara.ip@test.ma') === 0, `${codesFor('sara.ip@test.ma')} code(s)`);
+
   const cd = await call(null, 'POST', '/api/auth/register', {
     nom: 'Cooldown', prenom: 'Test', email: 'cooldown@test.ma', password: 'Secret123', password2: 'Secret123', role: 'enseignant'
   });
-  check('compte de test pour le renvoi créé', cd.status === 201, `HTTP ${cd.status}`);
-  r = await call(null, 'POST', '/api/auth/resend-code', { email: 'cooldown@test.ma' });
-  check('renvoi de code avec anti-spam (cooldown 60 s)', r.status === 429, `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
-  check('code de vérification limité dans le temps (expiration)',
-    !!db.prepare(`SELECT expires_at FROM email_codes ec JOIN users u ON u.id = ec.user_id WHERE u.email='cooldown@test.ma'`).get(),
-    'expires_at défini (+15 min)');
-  r = await call(null, 'POST', '/api/auth/verify', { email: 'karim.ibo@test.ma', code: karimCode });
-  check('vérification Karim', r.status === 200, `HTTP ${r.status}`);
-  r = await call(null, 'POST', '/api/auth/verify', { email: 'nadia.prof@test.ma', code: nadiaCode });
-  check('vérification Nadia', r.status === 200, `HTTP ${r.status}`);
+  check('compte de test créé en attente (sans code)',
+    cd.status === 201 && cd.body.status === 'pending', `HTTP ${cd.status} ${cd.body.status}`);
 
   r = await call(coordIP, 'POST', '/api/auth/login', { email: 'sara.ip@test.ma', password: 'Secret123' });
   check('connexion avant validation admin refusée', r.status === 403, r.body.error && r.body.error.code);
+  check('motif : validation administrative requise',
+    r.body.error && r.body.error.code === 'ACCOUNT_PENDING', r.body.error && r.body.error.message);
 
   /* ============ 3. VALIDATION PAR ADMINISTRATION ============ */
   section('3. Validation par administration');
@@ -138,7 +134,8 @@ async function main() {
   r = await call(admin, 'GET', '/api/admin/accounts?status=pending');
   check('liste des demandes de comptes', r.status === 200 && Array.isArray(r.body.accounts), `${r.body.accounts ? r.body.accounts.length : 0} en attente`);
   const saraAcc = (r.body.accounts || []).find((a) => a.email === 'sara.ip@test.ma');
-  check('email vérifié affiché', saraAcc && saraAcc.email_verified === true);
+  check('demande en attente de validation (sans vérification email)',
+    saraAcc && saraAcc.status === 'pending', saraAcc && saraAcc.status);
   check('options demandées affichées', saraAcc && saraAcc.options.length === 1 && saraAcc.options[0].status === 'REQUESTED');
 
   r = await call(admin, 'POST', `/api/admin/accounts/${saraAcc.id}/validate`, {});
@@ -154,6 +151,34 @@ async function main() {
   teacherId = nadiaAcc.id;
   r = await call(admin, 'POST', `/api/admin/accounts/${nadiaAcc.id}/validate`, {});
   check('validation du compte enseignant', r.status === 200, r.body.message || '');
+
+  /* L'approbation d'un compte n'en active aucun autre : les demandes restées
+     en attente (y compris les anciennes) ne sont jamais activées seules. */
+  const stillPending = db.prepare("SELECT status FROM users WHERE email = 'cooldown@test.ma'").get();
+  check('aucune activation automatique des comptes en attente',
+    stillPending && stillPending.status === 'pending', stillPending && stillPending.status);
+  r = await call(null, 'POST', '/api/auth/login', { email: 'cooldown@test.ma', password: 'Secret123' });
+  check('compte non approuvé toujours bloqué à la connexion',
+    r.status === 403 && r.body.error && r.body.error.code === 'ACCOUNT_PENDING',
+    `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
+
+  /* Le refus des demandes reste pleinement fonctionnel (accepter ET refuser). */
+  const refused = await call(null, 'POST', '/api/auth/register', {
+    nom: 'Refusé', prenom: 'Demande', email: 'demande.refusee@test.ma',
+    password: 'Secret123', password2: 'Secret123', role: 'enseignant'
+  });
+  check('demande créée pour le test de refus', refused.status === 201 && refused.body.status === 'pending', `HTTP ${refused.status}`);
+  const refusedAcc = (await call(admin, 'GET', '/api/admin/accounts?status=pending')).body.accounts
+    .find((a) => a.email === 'demande.refusee@test.ma');
+  check('demande visible dans le panneau d’administration', !!refusedAcc, refusedAcc && refusedAcc.id);
+  r = await call(admin, 'POST', `/api/admin/accounts/${refusedAcc.id}/refuse`, { reason: 'Test de la fonction de refus.' });
+  check('refus de la demande accepté', r.status === 200 && r.body.ok, r.body.message || `HTTP ${r.status}`);
+  check('statut « refusé » en base',
+    db.prepare("SELECT status FROM users WHERE email = 'demande.refusee@test.ma'").get().status === 'refused');
+  r = await call(null, 'POST', '/api/auth/login', { email: 'demande.refusee@test.ma', password: 'Secret123' });
+  check('compte refusé bloqué à la connexion',
+    r.status === 403 && r.body.error && r.body.error.code === 'ACCOUNT_REFUSED',
+    `HTTP ${r.status} ${r.body.error && r.body.error.code}`);
 
   r = await call(coordIP, 'POST', '/api/auth/login', { email: 'sara.ip@test.ma', password: 'Secret123' });
   check('connexion coordinateur après validation', r.status === 200, `HTTP ${r.status}`);
@@ -181,7 +206,7 @@ async function main() {
     role: 'coordinateur', options: [ipOptionId, iboOptionId, thirdId]
   });
   check('demande de 3 options acceptée', r.status === 201, `HTTP ${r.status} ${r.body.error && r.body.error.message}`);
-  const coord3Code = r.body.dev_code;
+  check('compte multi-options créé en attente, sans code', r.body.status === 'pending' && !r.body.dev_code, r.body.status);
 
   r = await call(null, 'POST', '/api/auth/register', {
     nom: 'Coord4', prenom: 'Test', email: 'coord4opt@test.ma', password: 'Secret123', password2: 'Secret123',
@@ -223,9 +248,8 @@ async function main() {
 
   // coordination à 2 options : création d'un compte avec 2 options approuvées
   const coord2 = db.prepare('SELECT id FROM users WHERE email = ?').get('coord3opt@test.ma');
-  const v3 = await call(null, 'POST', '/api/auth/verify', { email: 'coord3opt@test.ma', code: coord3Code });
-  check('vérification email du coordinateur multi-options', v3.status === 200, `HTTP ${v3.status}`);
-  await call(admin, 'POST', `/api/admin/accounts/${coord2.id}/validate`, { approve_options: true });
+  const v3 = await call(admin, 'POST', `/api/admin/accounts/${coord2.id}/validate`, { approve_options: true });
+  check('validation administrative du coordinateur multi-options', v3.status === 200, `HTTP ${v3.status}`);
   const s3 = session();
   await call(s3, 'POST', '/api/auth/login', { email: 'coord3opt@test.ma', password: 'Secret123' });
   r = await call(s3, 'GET', '/api/auth/me');
@@ -514,6 +538,24 @@ async function main() {
   check('points de rupture responsive dans la feuille de style', (css.match(/@media/g) || []).length >= 3, `${(css.match(/@media/g) || []).length} @media`);
   check('viewport mobile déclaré', /viewport[^>]*width=device-width/.test(html));
   check('navigation adaptée (sidebar + bottom nav)', /sidebar/.test(css) && /bottom-nav|mobile-nav/.test(css));
+
+  /* ============ NAVIGATION (barre principale, menu latéral, retour en haut) ============ */
+  section('Navigation (haut, milieu, bas de page)');
+  const appJs = fs.readFileSync(path.join(ROOT, 'public', 'js', 'app.js'), 'utf8');
+  const authJsSrc = fs.readFileSync(path.join(ROOT, 'public', 'js', 'views', 'auth.js'), 'utf8');
+  check('barre de navigation principale sur les pages publiques', /site-nav/.test(css) && /function siteNav\(/.test(authJsSrc));
+  check('liens publics limités aux pages réellement existantes',
+    /PUBLIC_NAV[\s\S]*'\/login'[\s\S]*'\/register'/.test(authJsSrc) && !/ViewVerify/.test(authJsSrc));
+  check('menu latéral fixe : reste visible pendant le défilement',
+    /\.sidebar\s*\{[^}]*position:\s*fixed/s.test(css));
+  check('menu mobile : bouton + voile de fond',
+    /mobile-head/.test(css) && /nav-backdrop/.test(css) && /toggleSidebar/.test(appJs));
+  check('« Retour en haut » en bas des pages longues',
+    /to-top-fab/.test(css) && /Retour en haut/.test(appJs) && /Retour en haut/.test(authJsSrc));
+  check('menus par rôle conservés (admin / coordinateur / enseignant)',
+    /MENUS\s*=\s*\{/.test(appJs) && /admin:\s*\[/.test(appJs) && /enseignant:\s*\[/.test(appJs));
+  check('étape de saisie du code supprimée de l’interface',
+    /ViewAccountPending/.test(authJsSrc) && !/f_code/.test(authJsSrc));
 
   /* ============ PERMISSIONS / SÉCURITÉ ============ */
   section('Permissions & sécurité (contrôle serveur)');

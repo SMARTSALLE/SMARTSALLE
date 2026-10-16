@@ -88,10 +88,10 @@ module.exports = function adminRoutes(router) {
     const u = db.get().prepare('SELECT * FROM users WHERE id = ?').get(+params.id);
     if (!u) throw new ApiError(404, 'USER_NOT_FOUND', 'Utilisateur introuvable.');
     if (u.status === 'active') return ok(res, { ok: true, message: 'Compte déjà validé.' });
-    if (!u.email_verified && !bool(b.force)) {
-      throw new ApiError(400, 'EMAIL_NOT_VERIFIED',
-        'Cet email n’est pas encore vérifié. Utilisez « valider quand même » (force) si nécessaire.', { email: u.email });
-    }
+    /* Plus de vérification email préalable : la décision de l’administration
+       (accepter / refuser) est le seul verrou d’accès. Le paramètre `force`
+       reste accepté pour compatibilité, sans effet. */
+    void b.force;
     const d = db.get();
     d.prepare("UPDATE users SET status = 'active', updated_at = datetime('now') WHERE id = ?").run(u.id);
     let approvedOptions = 0;

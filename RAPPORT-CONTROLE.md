@@ -5,6 +5,18 @@
 **Résultat global :** ✅ **152 / 152 tests automatisés réussis** — 20 écrans contrôlés sans erreur JavaScript
 **Rapport machine détaillé :** `data/test-report.json`
 
+> **Mise à jour du 16/10/2026** — deux évolutions demandées par l'ISPITS :
+> 1. **Suppression de la vérification par code email à l'inscription** : aucun code, aucun SMTP requis ; le compte
+>    est créé « En attente de validation administrative » et reste bloqué tant que l'administration ne l'a pas
+>    accepté ou refusé (**les fonctions [VALIDER] / [REFUSER] sont conservées**). Les comptes, réservations,
+>    emplois du temps et toutes les données existantes sont conservés ; aucun compte en attente n'est activé
+>    automatiquement.
+> 2. **Navigation accessible sur toutes les pages** : barre principale publique (Accueil, Connexion, Créer un
+>    compte, Mot de passe oublié), menu latéral par rôle dans l'espace connecté (fixe sur ordinateur, tiroir +
+>    bouton ☰ sur téléphone) et bouton « Retour en haut » en pied des pages longues.
+>
+> La suite automatisée a été adaptée à ce nouveau parcours : **305 / 305 tests réussis** (`npm test`).
+
 ---
 
 ## 1. Fonctionnalités créées
@@ -12,11 +24,11 @@
 ### Authentification & comptes
 - Inscription (Nom, Prénom, Email, Mot de passe, Confirmation, Rôle souhaité).
 - Coordinateur : choix de **1 à 3 options maximum** (4ᵉ option refusée côté serveur ET côté base).
-- **Code de vérification par email** : 6 chiffres, hashé (scrypt), expiration 15 min, anti-renvoi 60 s, 6 tentatives max.
-- Compte bloqué tant que : ① email non vérifié ② administration non validée.
+- **Vérification par code email supprimée** (16/10/2026) : l'inscription n'envoie aucun code et n'exige aucun SMTP.
+- Compte bloqué tant que l'administration ne l'a pas validé (aucune activation automatique des comptes en attente).
 - Connexion / déconnexion, sessions en base (30 j, jeton hashé, cookie `HttpOnly`), changement de mot de passe, réinitialisation par l'admin.
-- **Mot de passe oublié** (`#/forgot`) : demande de code par email → nouveau mot de passe. Mêmes protections que la vérification email (code hashé scrypt, expiration 15 min, anti-renvoi 60 s, 6 tentatives max) ; réponses génériques quand le compte est inconnu ou l'email non vérifié (aucune énumération de comptes) ; à la réinitialisation, **toutes les sessions existantes sont révoquées** et l'utilisateur reçoit une notification.
-- Page **DEMANDES DE COMPTES** : Nom, Prénom, Email, Rôle, Options demandées, Email vérifié, Date, Statut (EN ATTENTE / VALIDÉ / REFUSÉ) + actions [VALIDER] [REFUSER].
+- **Mot de passe oublié** (`#/forgot`) : demande de code par email → nouveau mot de passe. Code hashé scrypt, expiration 15 min, anti-renvoi 60 s, 6 tentatives max ; réponses génériques quand le compte est inconnu (aucune énumération de comptes) ; à la réinitialisation, **toutes les sessions existantes sont révoquées** et l'utilisateur reçoit une notification.
+- Page **DEMANDES DE COMPTES** : Nom, Prénom, Email, Rôle, Options demandées, Date, Statut (EN ATTENTE / VALIDÉ / REFUSÉ) + actions [VALIDER] [REFUSER].
 
 ### Options & coordinateurs
 - Table `options` (code, nom, description, statut) entièrement gérée par l'administration.
@@ -153,13 +165,13 @@ Vérifiées par les tests 152 / 152 — **le frontend ne fait que masquer, le se
 ## 6. Tests effectués
 
 **Commande :** `npm test` → `node tests/run-tests.js` (base de test dédiée `data/test-smartsalle.db`, serveur démarré en écoute réelle)
-**Résultat : 152 / 152 OK** — rapport JSON : `data/test-report.json`
+**Résultat (16/10/2026) : 305 / 305 OK** — rapport JSON : `data/test-report.json`
 
 ### Les 25 tests obligatoires du cahier des charges
 | # | Test | Résultat |
 |---|---|---|
 | 1 | Création d'un compte | ✅ |
-| 2 | Vérification email (mauvais code refusé, bon code accepté, code à usage unique, cooldown de renvoi) | ✅ |
+| 2 | Inscription sans vérification par code (aucun code créé, compte en attente, connexion bloquée avant validation) | ✅ |
 | 3 | Validation par administration (connexion refusée avant validation) | ✅ |
 | 4 | Demande de 1 option | ✅ |
 | 5 | Demande de 3 options (+ refus d'une 4ᵉ) | ✅ |
