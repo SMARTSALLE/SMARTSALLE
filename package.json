@@ -5,7 +5,7 @@
   "description": "SmartSalle ISPITS — Gestion intelligente des salles, des emplois du temps et des réservations (ISPITS Laâyoune)",
   "type": "commonjs",
   "scripts": {
-    "start": "infisical run --env=dev -- node server/index.js",
+    "start": "node server/index.js",
     "dev": "infisical run --env=dev -- node server/index.js",
     "start:local": "node server/index.js",
     "dev:local": "node server/index.js",
