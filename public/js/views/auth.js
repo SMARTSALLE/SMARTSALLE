@@ -266,7 +266,6 @@ function ViewRegister() {
         /* Plus de code de vérification : le compte est créé « en attente de
            validation administrative » et la confirmation remplace l’ancienne
            étape de saisie du code. */
-        sessionStorage.setItem('pending_email', values.email);
         toast(res.message, 'ok', 6000);
         window.navigateTo('/pending');
       },
