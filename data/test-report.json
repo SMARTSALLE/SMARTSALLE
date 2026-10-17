@@ -1,0 +1,2114 @@
+{
+  "generated_at": "2026-10-17T03:38:08.287Z",
+  "total": 351,
+  "passed": 351,
+  "failed": 0,
+  "results": [
+    {
+      "section": "1. Création d’un compte",
+      "name": "inscription coordinateur acceptée",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "aucun code de vérification à saisir (SMTP non requis)",
+      "pass": true,
+      "detail": "{\"needs_verification\":false,\"dev_code\":null}"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "compte créé « en attente de validation administrative »",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "email_verified = 1 à l’inscription (champ conservé, aucune vérification exigée)",
+      "pass": true,
+      "detail": "{\"email_verified\":1,\"status\":\"pending\"}"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "statut pending : le seul verrou d’accès reste administratif",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "2e coordinateur créé",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "2e compte en attente, sans code",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "inscription enseignant acceptée",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "enseignant en attente, sans code",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "1. Création d’un compte",
+      "name": "auto-inscription admin refusée",
+      "pass": true,
+      "detail": "HTTP 403 ROLE_NOT_ALLOWED"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "étape de vérification supprimée (route inexistante)",
+      "pass": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "aucun code email créé à l’inscription",
+      "pass": true,
+      "detail": "0 code(s)"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "renvoi de code de vérification désactivé (réponse générique)",
+      "pass": true,
+      "detail": "HTTP 200 dev_code=undefined"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "toujours aucun code de vérification en base",
+      "pass": true,
+      "detail": "0 code(s)"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "compte de test créé en attente (sans code)",
+      "pass": true,
+      "detail": "HTTP 201 pending"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "connexion avant validation admin refusée",
+      "pass": true,
+      "detail": "ACCOUNT_PENDING"
+    },
+    {
+      "section": "2. Inscription sans vérification par code email",
+      "name": "motif : validation administrative requise",
+      "pass": true,
+      "detail": "Compte en attente de validation administrative. L’administration doit d’abord approuver votre demande."
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "connexion administration",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "session admin initialisée",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "liste des demandes de comptes",
+      "pass": true,
+      "detail": "4 en attente"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "demande en attente de validation (sans vérification email)",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "options demandées affichées",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "validation du compte coordinateur",
+      "pass": true,
+      "detail": "Compte validé."
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "validation avec approbation de l’option",
+      "pass": true,
+      "detail": "options approuvées=1"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "validation du compte enseignant",
+      "pass": true,
+      "detail": "Compte validé."
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "aucune activation automatique des comptes en attente",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "compte non approuvé toujours bloqué à la connexion",
+      "pass": true,
+      "detail": "HTTP 403 ACCOUNT_PENDING"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "demande créée pour le test de refus",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "demande visible dans le panneau d’administration",
+      "pass": true,
+      "detail": "6"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "refus de la demande accepté",
+      "pass": true,
+      "detail": "Compte refusé."
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "statut « refusé » en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "compte refusé bloqué à la connexion",
+      "pass": true,
+      "detail": "HTTP 403 ACCOUNT_REFUSED"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "connexion coordinateur après validation",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "connexion coordinateur IBO",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "3. Validation par administration",
+      "name": "connexion enseignant",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "3e option créée par l’administration",
+      "pass": true,
+      "detail": "id=19"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "demande d’1 option acceptée",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "demande de 3 options acceptée",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "compte multi-options créé en attente, sans code",
+      "pass": true,
+      "detail": "pending"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "demande de 4 options REFUSÉE (max 3)",
+      "pass": true,
+      "detail": "TOO_MANY_OPTIONS"
+    },
+    {
+      "section": "4-5. Demandes d’options (1 et 3, maximum 3)",
+      "name": "aucun dépassement en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "6-7. Rejet et approbation d’une option",
+      "name": "rejet d’une option",
+      "pass": true,
+      "detail": "Option IBO refusée."
+    },
+    {
+      "section": "6-7. Rejet et approbation d’une option",
+      "name": "statut REJECTED en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "6-7. Rejet et approbation d’une option",
+      "name": "validation de la même option ensuite",
+      "pass": true,
+      "detail": "Option IBO approuvée."
+    },
+    {
+      "section": "6-7. Rejet et approbation d’une option",
+      "name": "statut APPROVED en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "6-7. Rejet et approbation d’une option",
+      "name": "le coordinateur est notifié",
+      "pass": true,
+      "detail": "2 notification(s)"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "approbation explicite de l’option demandée",
+      "pass": true,
+      "detail": "Option IP approuvée."
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "Karim a 1 option approuvée → option active automatique",
+      "pass": true,
+      "detail": "{\"id\":2,\"code\":\"IBO\",\"name\":\"Infirmier en Bloc Opératoire\"}"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "Sara n’a qu’une option approuvée → activée automatiquement",
+      "pass": true,
+      "detail": "{\"id\":1,\"code\":\"IP\",\"name\":\"Infirmier Polyvalent\"}"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "auto-attribution d’une option non approuvée REFUSÉE",
+      "pass": true,
+      "detail": "OPTION_NOT_APPROVED"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "activation de son option approuvée",
+      "pass": true,
+      "detail": "{\"id\":1,\"code\":\"IP\",\"name\":\"Infirmier Polyvalent\"}"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "validation administrative du coordinateur multi-options",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "coordinateur multi-options : plusieurs options approuvées",
+      "pass": true,
+      "detail": "3 approuvée(s)"
+    },
+    {
+      "section": "8. Sélection de l’option active",
+      "name": "changement d’option active",
+      "pass": true,
+      "detail": "IBO"
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "recherche OK",
+      "pass": true,
+      "detail": "HTTP 200 undefined"
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "plusieurs salles proposées",
+      "pass": true,
+      "detail": "14 salles"
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "S12-1ER exclue de la recherche",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "S12-RDC présente et distincte",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "AMPHI présente",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "aucun champ de capacité dans les résultats",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "aucun filtrage par nombre d’étudiants (paramètre ignoré)",
+      "pass": true,
+      "detail": "pas de paramètre students/capacity côté serveur"
+    },
+    {
+      "section": "9. Recherche d’une salle",
+      "name": "filtre équipement accepté (aucun résultat si absent)",
+      "pass": true,
+      "detail": "0 salle(s) avec videoProjecteur"
+    },
+    {
+      "section": "10. Réservation",
+      "name": "création de réservation",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "10. Réservation",
+      "name": "réservation enregistrée en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "10. Réservation",
+      "name": "verrous de créneau posés (garantie DB)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "10. Réservation",
+      "name": "nombre d’étudiants stocké comme info uniquement",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "10. Réservation",
+      "name": "créneau non aligné sur 30 min refusé",
+      "pass": true,
+      "detail": "SLOT_NOT_ALIGNED"
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "tous les chevauchements bloqués (08:30-09:30, 09:00-11:00, 09:30-10:30…)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "créneau adjacent 10:00-12:00 autorisé",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "erreur base",
+      "pass": true,
+      "detail": "UNIQUE constraint failed: reservation_locks.room_id, reservation_locks.day, reservation_locks.slot"
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "GARANTIE DB : insertion directe chevauchante rejetée par SQLite",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "course critique : une seule des 2 insertions simultanées réussit",
+      "pass": true,
+      "detail": "1/2 gagnantes, 1/2 bloquées par le verrou (ok, locked)"
+    },
+    {
+      "section": "11. Détection des chevauchements",
+      "name": "aucune tentative n’a échoué sur un simple verrou SQLite (SQLITE_BUSY)",
+      "pass": true,
+      "detail": "ok, locked"
+    },
+    {
+      "section": "12. Modification",
+      "name": "modification d’horaire",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "12. Modification",
+      "name": "modification créant un conflit refusée",
+      "pass": true,
+      "detail": "HTTP 409"
+    },
+    {
+      "section": "13. Annulation",
+      "name": "annulation",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "13. Annulation",
+      "name": "verrous libérés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "13. Annulation",
+      "name": "créneau redevenu libre après annulation",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "14. Reprogrammation",
+      "name": "reprogrammation (nouvelle vérification des conflits)",
+      "pass": true,
+      "detail": "HTTP 200 2026-10-26"
+    },
+    {
+      "section": "14. Reprogrammation",
+      "name": "reprogrammation conflitante refusée",
+      "pass": true,
+      "detail": "HTTP 409"
+    },
+    {
+      "section": "15. Synchronisation temps réel",
+      "name": "ouverture du flux SSE",
+      "pass": true,
+      "detail": "HTTP 200 text/event-stream; charset=utf-8"
+    },
+    {
+      "section": "15. Synchronisation temps réel",
+      "name": "réservation créée pendant le flux",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "15. Synchronisation temps réel",
+      "name": "l’autre utilisateur reçoit la réservation en temps réel",
+      "pass": true,
+      "detail": "6 événement(s) reçu(s)"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "IBO crée sa réservation",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "IP ne peut PAS modifier la réservation IBO",
+      "pass": true,
+      "detail": "HTTP 403 NOT_OWNER"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "IP ne peut PAS supprimer la réservation IBO",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "IP NE VOIT PAS la réservation IBO (filtrage par option)",
+      "pass": true,
+      "detail": "invisible"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "disponibilité réelle : S04 occupée → non proposée à IP",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "disponibilité réelle : créneau S04 libre → proposé à IP",
+      "pass": true,
+      "detail": "créneau libre = 09:00, HTTP 200"
+    },
+    {
+      "section": "16. Protection des réservations des autres options",
+      "name": "IP ne peut PAS réserver pour l’option IBO",
+      "pass": true,
+      "detail": "OPTION_NOT_ALLOWED"
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "S12-1ER marquée RESERVED / MASTER MANAGEMENT",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "réservation normale sur S12-1ER REFUSÉE",
+      "pass": true,
+      "detail": "ROOM_RESTRICTED"
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "GARANTIE DB : S12-1ER verrouillée par déclencheur SQLite",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "l’administration voit S12-1ER",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "S12-RDC bien distincte de S12-1ER",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "AMPHI réservable",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "AMPHI occupée → absente de la recherche",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "17-19. Salles particulières",
+      "name": "AMPHI libre → présente à midi",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "20. Nombre d’étudiants non utilisé comme filtre",
+      "name": "paramètre students ignoré (résultats identiques)",
+      "pass": true,
+      "detail": "14 vs 14"
+    },
+    {
+      "section": "20. Nombre d’étudiants non utilisé comme filtre",
+      "name": "aucune colonne de capacité dans les salles",
+      "pass": true,
+      "detail": "id,code,name,floor,location,status,reserved_for,is_available_for_normal_booking,equipment,notes,qr_token,created_at"
+    },
+    {
+      "section": "21. Planning lundi → samedi",
+      "name": "6 jours (lundi→samedi), dimanche fermé",
+      "pass": true,
+      "detail": "Lundi,Mardi,Mercredi,Jeudi,Vendredi,Samedi"
+    },
+    {
+      "section": "21. Planning lundi → samedi",
+      "name": "08:00 → 18:00 par défaut",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "21. Planning lundi → samedi",
+      "name": "réservation un dimanche refusée",
+      "pass": true,
+      "detail": "DAY_CLOSED"
+    },
+    {
+      "section": "22. Impression / PDF",
+      "name": "application servie",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "22. Impression / PDF",
+      "name": "en-tête d’impression configurable présent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "22. Impression / PDF",
+      "name": "vue d’impression A4 paysage dans le client",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "22. Impression / PDF",
+      "name": "masquage de la chrome applicative à l’ impression",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "23. Export Excel / CSV",
+      "name": "export Excel (.xls) généré",
+      "pass": true,
+      "detail": "949 octets"
+    },
+    {
+      "section": "23. Export Excel / CSV",
+      "name": "type MIME Excel",
+      "pass": true,
+      "detail": "application/vnd.ms-excel; charset=utf-8"
+    },
+    {
+      "section": "23. Export Excel / CSV",
+      "name": "export CSV des réservations",
+      "pass": true,
+      "detail": "7 lignes"
+    },
+    {
+      "section": "23. Export Excel / CSV",
+      "name": "export Excel des salles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "23. Export Excel / CSV",
+      "name": "export utilisateurs réservé à l’admin",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "24. QR code des salles",
+      "name": "QR SVG généré",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "24. QR code des salles",
+      "name": "page publique accessible sans connexion",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "24. QR code des salles",
+      "name": "page publique en lecture seule",
+      "pass": true,
+      "detail": "S01"
+    },
+    {
+      "section": "24. QR code des salles",
+      "name": "statut et planning affichés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "24. QR code des salles",
+      "name": "token invalide refusé",
+      "pass": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "25. Mobile responsive",
+      "name": "points de rupture responsive dans la feuille de style",
+      "pass": true,
+      "detail": "9 @media"
+    },
+    {
+      "section": "25. Mobile responsive",
+      "name": "viewport mobile déclaré",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "25. Mobile responsive",
+      "name": "navigation adaptée (sidebar + bottom nav)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "barre de navigation principale sur les pages publiques",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "liens publics limités aux pages réellement existantes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "menu latéral fixe : reste visible pendant le défilement",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "menu mobile : bouton + voile de fond",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "« Retour en haut » en bas des pages longues",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "menus par rôle conservés (admin / coordinateur / enseignant)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Navigation (haut, milieu, bas de page)",
+      "name": "étape de saisie du code supprimée de l’interface",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "option « étrangère » créée pour le test",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "séance de l’option IP créée (2026-11-18 10:00)",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "séance de l’option IBO créée (2026-11-18 11:00)",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "séance de l’option LCS créée (2026-11-18 14:00)",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "séance de l’option EXT créée (2026-11-18 15:00)",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test A — la séance de Psychomotricité (IP) est visible",
+      "pass": true,
+      "detail": "1 séance(s)"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test A — aucune séance IBO, LCS ou étrangère visible",
+      "pass": true,
+      "detail": "options vues = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test A — pareil sur la journée complète (même semaine, même semestre)",
+      "pass": true,
+      "detail": "options vues = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test B — la séance IBO est visible",
+      "pass": true,
+      "detail": "1 séance(s)"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test B — aucune séance IP, LCS ou étrangère visible",
+      "pass": true,
+      "detail": "options vues = 2"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test C — le coordinateur a plusieurs options approuvées",
+      "pass": true,
+      "detail": "2,1,19"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test C — toutes ses options autorisées sont visibles",
+      "pass": true,
+      "detail": "vues = 1,2,19"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test C — aucune option non autorisée visible",
+      "pass": true,
+      "detail": "vues = 1,2,19 / autorisées = 2,1,19"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test D — l’administration voit toutes les options (IP, IBO, LCS, EXT)",
+      "pass": true,
+      "detail": "options vues = 1,2,19,20"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test D — accès administration (paramètres, comptes) conservés",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, semaine entière : uniquement IP",
+      "pass": true,
+      "detail": "1 séance(s), options = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, semestre S1 (le bon) : uniquement IP",
+      "pass": true,
+      "detail": "1 séance(s), options = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, semestre S2 : uniquement IP",
+      "pass": true,
+      "detail": "0 séance(s), options = aucune"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, semestre S5 : uniquement IP",
+      "pass": true,
+      "detail": "0 séance(s), options = aucune"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, période de 15 jours : uniquement IP",
+      "pass": true,
+      "detail": "1 séance(s), options = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "Test E — coordinateur IP, autre semaine : uniquement IP",
+      "pass": true,
+      "detail": "0 séance(s), options = aucune"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "liste des réservations filtrée pour le coordinateur",
+      "pass": true,
+      "detail": "options = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "carte de réservation étrangère refusée (403)",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "carte de réservation de sa propre option acceptée",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "recherche globale : aucune séance étrangère pour IP",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "recherche globale : la séance de SA option reste trouvable",
+      "pass": true,
+      "detail": "[{\"kind\":\"réservation\",\"id\":9,\"label\":\"S01 — Séance test IBO\",\"sub\":\"2026-11-18 660\",\"link\":\"#/reservations\"}]"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "export Excel : uniquement l’option du coordinateur",
+      "pass": true,
+      "detail": "IP"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "tableau de bord : cartes « prochaines séances » limitées à son option",
+      "pass": true,
+      "detail": "options = 1"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "aucune réservation supprimée (4 fixtures ajoutées seulement)",
+      "pass": true,
+      "detail": "7 → 11"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "côté client : sélecteur d’option restreint aux options approuvées",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "côté client : filtre de la liste des réservations limité aux options approuvées",
+      "pass": true,
+      "detail": "optionsForUser(data) + libellé « Toutes mes options »"
+    },
+    {
+      "section": "26. Planning filtré par option (tests A → E)",
+      "name": "côté client : plus aucune mention « autres options » pour un coordinateur",
+      "pass": true,
+      "detail": "légendes et texte de tête conditionnés au rôle"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "accès anonyme refusé",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "enseignant ne peut pas réserver",
+      "pass": true,
+      "detail": "HTTP 403 FORBIDDEN"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "enseignant sans accès admin",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "coordinateur sans accès aux paramètres",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "coordinateur ne peut pas créer de salle",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "coordinateur ne peut pas vider le planning",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "notes accessibles (privées)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "note d’un autre utilisateur protégée",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Permissions & sécurité (contrôle serveur)",
+      "name": "changement de mot de passe : mot de passe actuel vérifié",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "8 échecs de connexion refusés (401) et comptabilisés",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "verrou anti force brute : même le bon mot de passe est refusé (429 LOGIN_THROTTLED)",
+      "pass": true,
+      "detail": "HTTP 429 LOGIN_THROTTLED"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "verrou limité au compte attaqué : les autres connexions fonctionnent",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "aucun jeton de session dans les réponses JSON",
+      "pass": true,
+      "detail": "[\"id\",\"nom\",\"prenom\",\"email\",\"role\",\"gender\",\"status\",\"email_verified\",\"teacher_id\",\"active_option\",\"options\",\"approved_options\"]"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "traversée de répertoire hors de la racine publique bloquée",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "traversée via /uploads/ bloquée",
+      "pass": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "Content-Security-Policy présent sur la page applicative",
+      "pass": true,
+      "detail": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "nosniff + X-Frame-Options sur la page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "codes de réinitialisation réservés aux requêtes de boucle locale",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Sécurité renforcée (anti force brute, anti fuite, en-têtes)",
+      "name": "service des fichiers blindé (insideDir + CSP + sandbox uploads)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "copier la journée",
+      "pass": true,
+      "detail": "créées=3 ignorées=0"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "copier la semaine (conflits ignorés, pas de doublon)",
+      "pass": true,
+      "detail": "créées=0 ignorées=3"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "planning global administration",
+      "pass": true,
+      "detail": "5 réservation(s)"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "historique / audit enregistré",
+      "pass": true,
+      "detail": "45 entrée(s)"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "création de réservation tracée",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "création de tâche",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "notifications",
+      "pass": true,
+      "detail": "7 notification(s), 7 non lue(s)"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "smart search : jour + heures compris",
+      "pass": true,
+      "detail": "{\"date\":\"2026-10-20\",\"start\":\"10:00\",\"end\":\"12:00\",\"equipment\":[]}"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "smart search : information manquante demandée uniquement",
+      "pass": true,
+      "detail": "[\"start\",\"end\"]"
+    },
+    {
+      "section": "Fonctions avancées (copie, planning global, historique, notes, tâches, notifications)",
+      "name": "recherche globale",
+      "pass": true,
+      "detail": "5 résultat(s)"
+    },
+    {
+      "section": "Tableaux de bord (admin / coordinateur / enseignant)",
+      "name": "dashboard admin : salles, réservations, options, groupes, enseignants, demandes",
+      "pass": true,
+      "detail": "{\"salles\":15,\"libres\":14,\"occup\":0,\"today\":0,\"pending\":3}"
+    },
+    {
+      "section": "Tableaux de bord (admin / coordinateur / enseignant)",
+      "name": "vue rapide salles libres/occupées",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Tableaux de bord (admin / coordinateur / enseignant)",
+      "name": "dashboard coordinateur : option active + statistiques",
+      "pass": true,
+      "detail": "{\"id\":1,\"code\":\"IP\",\"name\":\"Infirmier Polyvalent\"}"
+    },
+    {
+      "section": "Tableaux de bord (admin / coordinateur / enseignant)",
+      "name": "dashboard enseignant : consultation seule",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "groupe de semestre S3 créé",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "groupe de semestre S1 créé",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "cours du semestre S3 enregistré",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "cours du semestre S1 enregistré",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "« Tous » : tous les programmes enregistrés",
+      "pass": true,
+      "detail": "3 cours"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "S3 : uniquement les cours du semestre 3",
+      "pass": true,
+      "detail": "[\"IMP-S3\",\"IMP-S3\"]"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "S1 : uniquement les cours du semestre 1",
+      "pass": true,
+      "detail": "[\"IMP-S1\"]"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "valeur stockée « Semestre 3 » reconnue comme S3",
+      "pass": true,
+      "detail": "2 cours"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "S5 sans cours : aucun résultat (message affiché côté client)",
+      "pass": true,
+      "detail": "0 cours"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "annulation d’une séance acceptée",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "séance annulée exclue du filtre semestre",
+      "pass": true,
+      "detail": "1 cours"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "« Tous » : séance annulée exclue aussi",
+      "pass": true,
+      "detail": "2 cours"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "aucun cours supprimé par la correction",
+      "pass": true,
+      "detail": "17 lignes"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "semaine calculée depuis la date : lundi → samedi",
+      "pass": true,
+      "detail": "2026-10-12 → 2026-10-17 (mon,tue,wed,thu,fri,sat)"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "date illisible : semaine courante au lieu d’une erreur 500",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "page Impression : message « Aucun programme disponible pour ce semestre »",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "plein écran d’une option : aucun semestre imposé (plus de page vide)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Impression : filtres semestre, semaine et export",
+      "name": "boutons de semestre : état sélectionné conservé + filtres propagés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "coordinateur crée un enseignant (fiche complète)",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "second enseignant créé par un autre coordinateur",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "1. coordinateur crée un module en S1 avec enseignant",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "1. affectation enseignant créée automatiquement",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "1. module créé actif (validation non activée)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "2. module visible dans la liste S1 de son option",
+      "pass": true,
+      "detail": "1 module(s)"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "9. filtre semestre : absent de S2",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "9. filtre année universitaire : absent de 2025/2026",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "3. l’administration retrouve le module dans son espace",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "3. module tracé (créé par le coordinateur)",
+      "pass": true,
+      "detail": "Sara El Amrani"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "création d’un second module sans enseignant",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "5. un enseignant affecté à plusieurs modules",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "6. un module peut avoir plusieurs enseignants",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "6. deux affectations actives sur le même module",
+      "pass": true,
+      "detail": "[\"Fatima Alaoui\",\"Karim Berrada\"]"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "doublon d’affectation refusé (unicité module/enseignant/année)",
+      "pass": true,
+      "detail": "HTTP 409 ALREADY_ASSIGNED"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "archivage d’une affectation accepté",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "affectation archivée, historique conservé en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "liste active : affectation archivée exclue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "7. coordinateur IP ne voit aucun module IBO",
+      "pass": true,
+      "detail": "0 module(s)"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "7. coordinateur IP ne peut pas créer de module IBO",
+      "pass": true,
+      "detail": "HTTP 403 OPTION_NOT_ALLOWED"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "7. coordinateur IBO ne peut pas modifier un module IP",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "7. enseignant ne peut pas créer de module",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "modification par le coordinateur de l’option acceptée",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "4. l’administration voit les affectations du module",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "4. admin modifie le volume horaire de l’affectation",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "4. coordinateur voit la mise à jour (18h)",
+      "pass": true,
+      "detail": "18h"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "validation administrative des modules activée",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "module de coordinateur : statut « En attente de validation »",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "admin valide le module",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "statut VALIDATED en base après validation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "coordinateur voit le statut de validation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "8. cours créé avec module + enseignant enregistrés",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "8. nom de l’enseignant repris automatiquement (aucune saisie manuelle)",
+      "pass": true,
+      "detail": "Fatima Alaoui"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "8. intitulé du module repris automatiquement",
+      "pass": true,
+      "detail": "Anatomie S1 (maj)"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "10. modules persistés en base",
+      "pass": true,
+      "detail": "3 modules"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "10. affectations persistées en base",
+      "pass": true,
+      "detail": "3 affectations"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "10. données toujours disponibles après rechargement",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "export modules filtré (option + semestre + année)",
+      "pass": true,
+      "detail": "2237 octets"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "export modules : répartition horaire et enseignant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "export affectations accessible au coordinateur",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Modules et enseignants par semestre (10 scénarios)",
+      "name": "export modules scopé : IBO ne voit pas les modules IP",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "confirmation requise",
+      "pass": true,
+      "detail": "HTTP 400 CONFIRMATION_REQUIRED"
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "vidage global refusé sans le nom de l’établissement",
+      "pass": true,
+      "detail": "HTTP 400 CONFIRMATION_REQUIRED"
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "planning vidé",
+      "pass": true,
+      "detail": "16/16"
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "aucune réservation active restante",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "historique des annulations conservé",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "verrous nettoyés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "salles conservées",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "utilisateurs conservés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Vider le planning (admin)",
+      "name": "options/groupes/modules conservés",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "email inconnu : réponse générique (pas d’énumération)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "code de réinitialisation envoyé",
+      "pass": true,
+      "detail": "HTTP 200 dev_code=734180"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "cooldown du code de réinitialisation (60 s)",
+      "pass": true,
+      "detail": "HTTP 429 COOLDOWN"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "code erroné refusé",
+      "pass": true,
+      "detail": "HTTP 400 RESET_INVALID"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "mot de passe trop court refusé",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "confirmation différente refusée",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "réinitialisation acceptée avec le bon code",
+      "pass": true,
+      "detail": "HTTP 200 undefined"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "code consommé en base",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "ancien mot de passe refusé",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "nouveau mot de passe accepté",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "sessions révoquées après réinitialisation",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "section": "Mot de passe oublié (réinitialisation)",
+      "name": "mot de passe d’origine rétabli (suite des tests)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Persistance des données",
+      "name": "fichier de base de données présent et non vide",
+      "pass": true,
+      "detail": "4419088 octets (db + wal)"
+    },
+    {
+      "section": "Persistance des données",
+      "name": "données persistées (utilisateurs)",
+      "pass": true,
+      "detail": "9 comptes"
+    },
+    {
+      "section": "Persistance des données",
+      "name": "réouverture du fichier : mêmes données",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "titre masculin par défaut (compte antérieur à la colonne)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "titre féminin pour un compte marqué F",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "genre reconnu dans ses formes courantes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "régle FILIÈRE automatique : Soins Infirmiers → Coordinatrice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "toutes les autres filières → Coordinateur",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "titre du responsable d’OPTION selon le genre",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "inscription coordinateur acceptée avec un genre",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "genre enregistré en base",
+      "pass": true,
+      "detail": "F"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "titre exposé par l’API des comptes",
+      "pass": true,
+      "detail": "Coordinatrice"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "modification d’un autre champ sans genre : titre conservé",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "titre toujours Coordinatrice après modification",
+      "pass": true,
+      "detail": "Coordinatrice"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "droits inchangés : rôle et statut préservés",
+      "pass": true,
+      "detail": "coordinateur/pending"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "création admin sans genre acceptée",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "compte sans genre → titre masculin historique",
+      "pass": true,
+      "detail": "Coordinateur"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "export des comptes : colonne titre présente",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "export des comptes : titre Coordinatrice repris",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Titres des responsables",
+      "name": "fiche de réservation : filière Soins Infirmiers → Coordinatrice de filière",
+      "pass": true,
+      "detail": "Soins Infirmiers"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "création d’un compte étudiant par l’administration",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "auto-inscription étudiant refusée",
+      "pass": true,
+      "detail": "HTTP 403 ROLE_NOT_ALLOWED"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "connexion étudiant",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "connexion coordinateur de l’option IP",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "connexion enseignant",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "métadonnées de dépôt accessibles à l’étudiant",
+      "pass": true,
+      "detail": "3 module(s)"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "le module de test y figure",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "métadonnées refusées à un non-étudiant",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "dépôt sans justificatif refusé",
+      "pass": true,
+      "detail": "HTTP 400 MISSING_FIELD"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "dépôt du justificatif accepté",
+      "pass": true,
+      "detail": "HTTP 201 undefined"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "à la sortie du dépôt : demande « en attente de vérification »",
+      "pass": true,
+      "detail": "EN_ATTENTE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "à la sortie du dépôt : absence NON justifiée",
+      "pass": true,
+      "detail": "EN_ATTENTE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "base : le dépôt n’a pas justifié l’absence",
+      "pass": true,
+      "detail": "EN_ATTENTE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "base : champ « status » envoyé par l’étudiant ignoré",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "base : demande sans décision (décideur et date vides)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "historique : dépôt tracé avec l’auteur",
+      "pass": true,
+      "detail": "EN_ATTENTE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "fichier de la pièce écrit sur le disque",
+      "pass": true,
+      "detail": "jf1_v1.pdf"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’étudiant ne peut PAS valider son propre justificatif",
+      "pass": true,
+      "detail": "HTTP 403 FORBIDDEN"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’étudiant ne peut PAS non plus refuser",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "espace de vérification refusé à l’étudiant",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "nouveau document refusé avant tout complément demandé",
+      "pass": true,
+      "detail": "HTTP 409 NOT_COMPLEMENT"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "aucun moyen pour l’étudiant de forcer un statut (pas de route)",
+      "pass": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "statut inchangé après toutes ces tentatives",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "coordinateur d’une autre option : absence invisible",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "coordinateur d’une autre option ne peut pas statuer",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’enseignant voit l’absence de son cours",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "vue enseignant : statut de la demande visible, motif absent",
+      "pass": true,
+      "detail": "[\"id\",\"day\",\"start\",\"end\",\"module_label\",\"teacher_label\",\"option_id\",\"option_code\",\"student_id\",\"student_name\",\"absence_status\",\"demand_status\"]"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "vue enseignant : aucune pièce justificative exposée",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "détail complet refusé à l’enseignant",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "pièce médicale refusée à l’enseignant",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "un autre étudiant ne voit pas cette absence",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "un autre étudiant ne télécharge pas la pièce",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’administration accède à la pièce (habilitée)",
+      "pass": true,
+      "detail": "HTTP 200 application/pdf"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "le coordinateur habilité voit la demande",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "filtre serveur par statut",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "détail + historique accessibles au coordinateur",
+      "pass": true,
+      "detail": "1 évènement(s)"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "complément sans observations refusé",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "refus sans motif refusé",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "complément demandé accepté",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "un complément demandé ne justifie toujours pas",
+      "pass": true,
+      "detail": "EN_ATTENTE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "base : absence toujours EN_ATTENTE",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "nouveau document accepté après complément demandé",
+      "pass": true,
+      "detail": "HTTP 200 v2"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "le renvoi repasse la demande en attente sans justifier",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "acceptation par le coordinateur habilité",
+      "pass": true,
+      "detail": "HTTP 200 undefined"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "absence officiellement justifiée",
+      "pass": true,
+      "detail": "JUSTIFIEE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "base : absence JUSTIFIEE après décision favorable",
+      "pass": true,
+      "detail": "JUSTIFIEE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "traçabilité : identité du responsable + date de traitement",
+      "pass": true,
+      "detail": "décideur 2 le 2026-10-17 03:38:07"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "les deux statuts restent distincts (JUSTIFIE / JUSTIFIEE)",
+      "pass": true,
+      "detail": "JUSTIFIE / JUSTIFIEE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "historique complet : dépôt → complément → décision",
+      "pass": true,
+      "detail": "EN_ATTENTE → COMPLEMENT_DEMANDE → EN_ATTENTE → JUSTIFIE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "auteur de la décision identifié dans l’historique",
+      "pass": true,
+      "detail": "Sara El Amrani"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "seconde décision refusée (décision définitive)",
+      "pass": true,
+      "detail": "HTTP 409"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’étudiant consulte l’état de sa demande",
+      "pass": true,
+      "detail": "JUSTIFIEE/JUSTIFIE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’étudiant propriétaire accède à sa propre pièce",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "enseignant toujours exclu du détail après décision",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "second dépôt accepté",
+      "pass": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "refus → demande REFUSE et absence NON_JUSTIFIEE",
+      "pass": true,
+      "detail": "HTTP 200 NON_JUSTIFIEE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "motif du refus conservé et transmis",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "l’étudiant voit « absence non justifiée »",
+      "pass": true,
+      "detail": "NON_JUSTIFIEE"
+    },
+    {
+      "section": "Absences et justificatifs (dépôt ≠ validation)",
+      "name": "liste des absences non justifiées",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

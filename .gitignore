@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Freebuff temporary files
+.freebuff/
+.tmp/
+tmp/
+.tools/
+tools-node-v24.21.0-win-x64.zip
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Operating system
+.DS_Store
+Thumbs.db
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Temporary files
+.tmp/
+tmp/
+.freebuff/
+.tools/
