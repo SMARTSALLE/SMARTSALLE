@@ -1,10 +1,32 @@
 'use strict';
 const { ok, created } = require('../router');
-const { ApiError, readJson, isEmail, str, requireFields, json, normalizeGender } = require('../util');
+const { ApiError, readJson, isEmail, str, requireFields, json, normalizeGender, rateHit } = require('../util');
 const db = require('../db');
-const { hashPassword, checkPassword, createSession, attachSession, clearSession, destroySession, currentUser, userForToken, requireAuth, requireRole, mapDbError } = require('../auth');
+const { hashPassword, checkPassword, createSession, attachSession, clearSession, destroySession, currentUser, userForToken, requireAuth, requireRole, mapDbError,
+  loginWaitSeconds, recordLoginFailure, clearLoginFailures, decoyVerify } = require('../auth');
 const mail = require('../mail');
 const realtime = require('../realtime');
+
+/* Un code de réinitialisation ne quitte jamais le serveur vers un client
+   distant : il n'est montré que sur une requête venant de la boucle locale
+   (le poste qui exécute le serveur), en plus du réglage expose_dev_codes et
+   de l'absence de NODE_ENV=production. Une URL publique ouverte par un
+   attaquant ne reçoit donc JAMAIS le code, même si l'installation est mal
+   configurée. */
+function isLoopback(req) {
+  const ra = (req && req.socket && req.socket.remoteAddress) || '';
+  return ra === '127.0.0.1' || ra === '::1' || ra === '::ffff:127.0.0.1';
+}
+
+/* Limitation commune des demandes anonymes (inscription, renvoi et demande
+   de code) : par adresse IP, fenêtre de 15 minutes. */
+const RATE_WINDOW_MS = 15 * 60 * 1000;
+function anonLimit(req, key, max) {
+  const wait = rateHit(`${key}:${(req.socket && req.socket.remoteAddress) || ''}`, max, RATE_WINDOW_MS);
+  if (wait > 0) {
+    throw new ApiError(429, 'TOO_MANY_REQUESTS', `Trop de demandes. Réessayez dans ${wait} seconde(s).`, { wait });
+  }
+}
 
 function notify(targetUserId, type, title, body, link) {
   try {
@@ -28,6 +50,7 @@ module.exports = function registerAuthRoutes(router) {
 
   /* ---------------- INSCRIPTION ---------------- */
   router.add('POST', '/api/auth/register', async ({ req, res }) => {
+    anonLimit(req, 'register', 30); // pas de création massive de comptes depuis une même IP
     const b = await readJson(req);
     requireFields(b, ['nom', 'prenom', 'email', 'password', 'password2', 'role']);
     const nom = str(b.nom, 80), prenom = str(b.prenom, 80);
@@ -56,7 +79,11 @@ module.exports = function registerAuthRoutes(router) {
 
     const d = db.get();
     try {
-      const r = d.prepare("INSERT INTO users (nom, prenom, email, password_hash, role, gender, status, email_verified) VALUES (?,?,?,?,?,?,'pending',0)")
+      /* Plus de vérification email : le champ email_verified reste dans le
+         schéma mais il est initialisé à 1 (aucune vérification ne sera jamais
+         demandée). Le SEUL verrou d'accès est le statut 'pending', levé
+         exclusivement par l'administration. */
+      const r = d.prepare("INSERT INTO users (nom, prenom, email, password_hash, role, gender, status, email_verified) VALUES (?,?,?,?,?,?,'pending',1)")
         .run(nom, prenom, email, hashPassword(String(b.password)), role, normalizeGender(b.gender));
       const userId = Number(r.lastInsertRowid);
       if (optionIds.length) {
@@ -92,6 +119,7 @@ module.exports = function registerAuthRoutes(router) {
      La vérification email à l’inscription n’existe plus : ce service ne sert
      qu’au réinitialisation de mot de passe (purpose = reset_password). */
   router.add('POST', '/api/auth/resend-code', async ({ req, res }) => {
+    anonLimit(req, 'mail', 10);
     const b = await readJson(req);
     const email = str(b.email, 160).toLowerCase();
     const purpose = str(b.purpose, 30) || 'reset_password';
@@ -108,7 +136,7 @@ module.exports = function registerAuthRoutes(router) {
       message: 'Nouveau code envoyé.',
       expires_minutes: sent.expires_minutes,
       cooldown: sent.cooldown,
-      dev_code: sent.code || null,
+      dev_code: sent.code && isLoopback(req) ? sent.code : null,
       delivery: sent.delivered
     });
   });
@@ -121,6 +149,7 @@ module.exports = function registerAuthRoutes(router) {
   };
 
   router.add('POST', '/api/auth/forgot-password', async ({ req, res }) => {
+    anonLimit(req, 'mail', 10);
     const b = await readJson(req);
     const email = str(b.email, 160).toLowerCase();
     const user = email ? db.get().prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
@@ -134,7 +163,7 @@ module.exports = function registerAuthRoutes(router) {
       ...forgotGeneric,
       expires_minutes: sent.expires_minutes,
       cooldown: sent.cooldown,
-      dev_code: sent.code || null,
+      dev_code: sent.code && isLoopback(req) ? sent.code : null,
       delivery: sent.delivered
     });
   });
@@ -176,10 +205,28 @@ module.exports = function registerAuthRoutes(router) {
     const b = await readJson(req);
     const email = str(b.email, 160).toLowerCase();
     const password = String(b.password || '');
+    const ip = (req.socket && req.socket.remoteAddress) || '';
+    /* Anti force brute : 8 échecs par couple IP+email (ou 50 échecs par IP
+       sur tous les comptes) bloquent la connexion pendant 15 minutes, même
+       avec le bon mot de passe. Une connexion réussie remet le compteur du
+       couple à zéro. */
+    const wait = loginWaitSeconds(ip, email);
+    if (wait > 0) {
+      throw new ApiError(429, 'LOGIN_THROTTLED',
+        `Trop de tentatives de connexion échouées. Réessayez dans ${wait} seconde(s).`, { wait });
+    }
     const user = db.get().prepare('SELECT * FROM users WHERE email = ?').get(email);
-    if (!user || !checkPassword(password, user.password_hash)) {
+    if (!user) {
+      // Même coût de calcul qu'un vrai mot de passe : pas d'énumération par chronométrage.
+      decoyVerify(password);
+      recordLoginFailure(ip, email);
       throw new ApiError(401, 'BAD_CREDENTIALS', 'Email ou mot de passe incorrect.');
     }
+    if (!checkPassword(password, user.password_hash)) {
+      recordLoginFailure(ip, email);
+      throw new ApiError(401, 'BAD_CREDENTIALS', 'Email ou mot de passe incorrect.');
+    }
+    clearLoginFailures(ip, email);
     if (user.status === 'pending') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente de validation administrative. L’administration doit d’abord approuver votre demande.', { email });
     if (user.status === 'refused') throw new ApiError(403, 'ACCOUNT_REFUSED', 'Votre demande de compte a été refusée.');
     if (user.status === 'suspended') throw new ApiError(403, 'ACCOUNT_SUSPENDED', 'Compte suspendu.');
