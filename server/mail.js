@@ -216,27 +216,9 @@ function smtpSend(s, msg) {
   })();
 }
 
-async function sendVerificationEmail(user, purpose) {
-  const code = createEmailCode(user.id, purpose);
-  const s = getSettings();
-  const subject = `${s.app_name} — code de vérification`;
-  const text = [
-    `Bonjour ${user.prenom} ${user.nom},`,
-    '',
-    `Votre code de vérification ${s.app_name} est : ${code}`,
-    '',
-    `Ce code expire dans ${CODE_TTL_MINUTES} minutes.`,
-    `Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.`,
-    '',
-    s.institution_name
-  ].join('\n');
-  const result = await deliver({ to: user.email, subject, text });
-  const expose = s.expose_dev_codes === '1' && process.env.NODE_ENV !== 'production';
-  return { code: expose ? code : undefined, delivered: result.delivered, delivery_error: result.error, expires_minutes: CODE_TTL_MINUTES, cooldown: RESEND_COOLDOWN_SECONDS };
-}
-
-/* Réinitialisation de mot de passe : même mécanisme de code (TTL, cooldown,
-   nombre de tentatives) que la vérification email, avec un objet dédié. */
+/* Réinitialisation de mot de passe : mécanisme de code (TTL, cooldown,
+   nombre de tentatives). Ancienne fonction de vérification à l'inscription
+   (sendVerificationEmail) supprimée : l'inscription n'envoie plus aucun code. */
 async function sendPasswordResetEmail(user) {
   const code = createEmailCode(user.id, 'reset_password');
   const s = getSettings();
@@ -257,6 +239,6 @@ async function sendPasswordResetEmail(user) {
 }
 
 module.exports = {
-  createEmailCode, verifyEmailCode, cooldownRemaining, sendVerificationEmail, sendPasswordResetEmail,
+  createEmailCode, verifyEmailCode, cooldownRemaining, sendPasswordResetEmail,
   deliver, CODE_TTL_MINUTES, RESEND_COOLDOWN_SECONDS, MAX_ATTEMPTS
 };

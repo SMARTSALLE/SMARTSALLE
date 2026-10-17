@@ -1,5 +1,6 @@
 'use strict';
-const { ApiError, sha256, randomToken, hashSecret, verifySecret, cookies, setCookie, str, normalizeGender } = require('./util');
+const { ApiError, sha256, randomToken, hashSecret, verifySecret, cookies, setCookie, str, normalizeGender,
+  ratePeek, rateHit, rateClear, clientIp } = require('./util');
 const { get } = require('./db');
 
 const SESSION_COOKIE = 'ss_session';
@@ -7,6 +8,34 @@ const SESSION_DAYS = 30;
 
 function hashPassword(plain) { return hashSecret(plain); }
 function checkPassword(plain, hash) { return verifySecret(plain, hash); }
+
+/* Anti force brute : tentatives échouées par couple IP + email, puis par IP
+   (anti « spraying » sur de nombreux comptes). Le compteur d'un couple est
+   remis à zéro dès qu'une connexion réussie prouve que c'est le titulaire. */
+const RATE_WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_FAILS = 8;         // par couple IP + email
+const MAX_LOGIN_FAILS_PER_IP = 50; // par adresse IP, tous comptes confondus
+
+function loginWaitSeconds(ip, email) {
+  return Math.max(
+    ratePeek(`login:${ip}:${String(email || '').toLowerCase()}`, MAX_LOGIN_FAILS, RATE_WINDOW_MS),
+    ratePeek(`loginip:${ip}`, MAX_LOGIN_FAILS_PER_IP, RATE_WINDOW_MS));
+}
+
+function recordLoginFailure(ip, email) {
+  rateHit(`login:${ip}:${String(email || '').toLowerCase()}`, MAX_LOGIN_FAILS, RATE_WINDOW_MS);
+  rateHit(`loginip:${ip}`, MAX_LOGIN_FAILS_PER_IP, RATE_WINDOW_MS);
+}
+
+function clearLoginFailures(ip, email) {
+  rateClear(`login:${ip}:${String(email || '').toLowerCase()}`);
+}
+
+/* Hash factice : quand l'email n'existe pas, on vérifie quand même un hash
+   pour que le temps de réponse soit identique — pas d'énumération de comptes
+   par chronométrage. Calculé une seule fois au démarrage. */
+const DUMMY_HASH = hashSecret('smartsalle-timing-decoy');
+function decoyVerify(plain) { return verifySecret(plain, DUMMY_HASH); }
 
 function createSession(userId, req) {
   const d = get();
@@ -78,8 +107,10 @@ function hydrate(row, token) {
     teacher_id: row.teacher_id || null,
     active_option: activeOption ? { id: activeOption.option_id, code: activeOption.code, name: activeOption.name } : null,
     options: options.map((o) => ({ id: o.option_id, request_id: o.id, code: o.code, name: o.name, status: o.status, requested_at: o.requested_at, approved_at: o.approved_at })),
-    approved_options: approved.map((o) => ({ id: o.option_id, code: o.code, name: o.name })),
-    session_token: token || undefined
+    approved_options: approved.map((o) => ({ id: o.option_id, code: o.code, name: o.name }))
+    /* Le jeton de session n'est JAMAIS renvoyé en JSON : il ne vit que dans le
+       cookie HttpOnly. Une fuite dans une réponse (log, cache, XSS) ne doit pas
+       permettre de rejouer la session. */
   };
 }
 
@@ -89,8 +120,9 @@ function requireAuth(req) {
   if (!user) throw new ApiError(401, 'UNAUTHENTICATED', 'Authentification requise');
   if (user.status === 'refused') throw new ApiError(403, 'ACCOUNT_REFUSED', 'Votre compte a été refusé par l’administration.');
   if (user.status === 'suspended') throw new ApiError(403, 'ACCOUNT_SUSPENDED', 'Votre compte est suspendu.');
-  if (user.status !== 'active') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente : vérification email + validation administrative requises.');
-  if (!user.email_verified) throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Adresse email non vérifiée.');
+  /* La vérification email a été supprimée : seule la validation administrative
+     ouvre l’accès aux fonctionnalités protégées. */
+  if (user.status !== 'active') throw new ApiError(403, 'ACCOUNT_PENDING', 'Compte en attente : validation administrative requise.');
   return user;
 }
 
@@ -142,5 +174,6 @@ function mapDbError(e) {
 module.exports = {
   SESSION_COOKIE, hashPassword, checkPassword, createSession, attachSession, clearSession,
   destroySession, sessionToken, currentUser, userForToken, requireAuth, requireRole, requireAdmin,
-  requireCoordinator, ERR, mapDbError, isSqliteConflict, hydrate
+  requireCoordinator, ERR, mapDbError, isSqliteConflict, hydrate,
+  loginWaitSeconds, recordLoginFailure, clearLoginFailures, decoyVerify, clientIp
 };
