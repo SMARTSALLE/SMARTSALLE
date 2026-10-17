@@ -1,6 +1,100 @@
 /* SmartSalle ISPITS — pages publiques : connexion, inscription, vérification, salle publique */
 'use strict';
 
+/* ---------------- Navigation publique (barre supérieure + pied de page) ----
+   Visible sur TOUTES les pages publiques : accueil, connexion, création de
+   compte, mot de passe oublié, confirmation d'inscription et salle publique.
+   Seuls des liens vers des pages réellement existantes sont proposés. */
+const PUBLIC_NAV = [
+  { path: '/', label: 'Accueil' },
+  { path: '/login', label: 'Connexion' },
+  { path: '/register', label: 'Créer un compte' },
+  { path: '/forgot', label: 'Mot de passe oublié' }
+];
+
+function navLinks(active) {
+  const links = PUBLIC_NAV.slice();
+  if (APP.user) links.unshift({ path: '/dashboard', label: 'Tableau de bord' });
+  return links.map((l) => h('a', {
+    class: `site-link${active === l.path ? ' active' : ''}`,
+    href: `#${l.path}`,
+    onclick: () => document.querySelector('.site-links')?.classList.remove('open')
+  }, l.label));
+}
+
+function siteNav(active) {
+  const burger = h('button', {
+    class: 'site-burger', type: 'button', 'aria-label': 'Ouvrir le menu', 'aria-expanded': 'false',
+    onclick: () => {
+      const links = document.querySelector('.site-links');
+      const open = links.classList.toggle('open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }, '☰');
+  return h('header', { class: 'site-nav' },
+    h('div', { class: 'site-nav-inner' },
+      h('a', { class: 'site-brand', href: '#/' },
+        h('span', { class: 'site-mark' }, h('img', {
+          src: '/assets/logo-ispits.png', alt: '',
+          onerror: function () { this.parentNode.textContent = '◈'; }
+        })),
+        h('span', { class: 'site-brand-text' },
+          h('b', {}, APP.settings.app_name || 'SMARTSALLE ISPITS'),
+          h('em', {}, APP.settings.institution_name || 'ISPITS LAÂYOUNE'))),
+      burger,
+      h('nav', { class: 'site-links', 'aria-label': 'Navigation principale' }, navLinks(active))));
+}
+
+function scrollTopTop() {
+  const from = window.scrollY;
+  if (from <= 1) return;
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+  /* Si le défilement animé n'est pas pris en charge (certaines webviews le
+     ignorent silencieusement), on bascule sur un défilement immédiat. */
+  setTimeout(() => { if (window.scrollY >= from) window.scrollTo(0, 0); }, 130);
+}
+
+function siteFoot() {
+  return h('footer', { class: 'site-foot' },
+    h('div', { class: 'site-foot-inner' },
+      h('nav', { class: 'site-foot-links', 'aria-label': 'Navigation de pied de page' }, navLinks('')),
+      h('button', { class: 'btn secondary sm to-top-inline', type: 'button', onclick: scrollTopTop }, '↑ Retour en haut'),
+      h('div', { class: 'site-foot-copy' },
+        `${APP.settings.app_name || 'SmartSalle ISPITS'} — ${APP.settings.institution_name || 'ISPITS Laâyoune'}`)));
+}
+
+/* Coquille des pages publiques : barre de navigation en haut, contenu, pied de page. */
+function publicShell(path, ...kids) {
+  return h('div', { class: 'public-page' }, siteNav(path), ...kids, siteFoot());
+}
+
+/* Bouton flottant « Retour en haut » : montre une fois la page défilée (pages
+   longues), sur les pages publiques comme dans l'espace connecté. Monté une
+   seule fois même si l'amorçage de l'application est déclenché deux fois. */
+function ensureTopFab() {
+  if (document.querySelector('.to-top-fab')) return;
+  document.body.appendChild(backToTopFab());
+}
+
+function backToTopFab() {
+  const fab = h('button', {
+    class: 'to-top-fab', type: 'button', 'aria-label': 'Retour en haut', title: 'Retour en haut',
+    onclick: scrollTopTop
+  }, '↑');
+  /* Visible après défilement, masquée en pied de page : le bouton « Retour en
+     haut » du pied de page prend le relais et n'est jamais recouvert. */
+  const sync = () => {
+    const doc = document.documentElement;
+    const scrolled = window.scrollY > 320;
+    const atBottom = (window.scrollY + window.innerHeight) >= (doc.scrollHeight - 150);
+    fab.classList.toggle('show', scrolled && !atBottom);
+  };
+  window.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('resize', sync);
+  sync();
+  return fab;
+}
+
 function authHero() {
   return h('div', { class: 'auth-hero' },
     h('div', { class: 'logo-row' },
@@ -151,7 +245,7 @@ function ViewRegister() {
 
   const card = h('div', { class: 'auth-card' },
     h('h2', {}, 'Créer un compte'),
-    h('div', { class: 'sub' }, 'Votre demande sera vérifiée par email puis validée par l’administration'),
+    h('div', { class: 'sub' }, 'Votre demande sera examinée puis validée par l’administration ISPITS'),
     form({
       fields: [
         { name: 'nom', label: 'Nom', required: true },
@@ -169,11 +263,11 @@ function ViewRegister() {
           throw new HttpError(400, 'OPTION_REQUIRED', 'Choisissez les options que vous coordonnez (1 au minimum).');
         }
         const res = await post('/api/auth/register', values);
-        sessionStorage.setItem('pending_email', values.email);
-        sessionStorage.setItem('dev_code', res.dev_code || '');
-        sessionStorage.setItem('delivery', res.delivery || '');
-        toast(res.message, 'ok', 5000);
-        window.navigateTo('/verify');
+        /* Plus de code de vérification : le compte est créé « en attente de
+           validation administrative » et la confirmation remplace l’ancienne
+           étape de saisie du code. */
+        toast(res.message, 'ok', 6000);
+        window.navigateTo('/pending');
       },
       after: h('div', { style: { marginTop: '16px' } },
         h('div', { class: 'field' },
@@ -218,80 +312,29 @@ function ViewRegister() {
     h('div', { class: 'auth-panel' }, card, optionsCatalogBlock('Toutes les filières de l’ISPITS')));
 }
 
-function ViewVerify() {
+/* ---------------- Confirmation d'inscription (aucun code à saisir) ----------
+   Après l'inscription, le compte est « en attente de validation
+   administrative » : il n'y a plus d'étape de vérification par code email. */
+function ViewAccountPending() {
   const email = sessionStorage.getItem('pending_email') || '';
-  const devCode = sessionStorage.getItem('dev_code') || '';
-  const delivery = sessionStorage.getItem('delivery') || '';
-  const outbox = delivery === 'outbox';
-  let infoBox = null;
-  let cooldown = 0;
-  let timer = null;
-
-  const resendBtn = h('button', {
-    class: 'btn secondary', type: 'button',
-    onclick: async () => {
-      try {
-        const res = await post('/api/auth/resend-code', { email: inpEmail.value });
-        if (res.dev_code) toast(`Code de développement : ${res.dev_code}`, 'warn', 9000);
-        else if (res.delivery === 'outbox') toast('SMTP non configuré : aucun email envoyé (copie locale data/outbox).', 'warn', 9000);
-        else toast(res.message, 'ok');
-        sessionStorage.setItem('delivery', res.delivery || '');
-        startCooldown(res.cooldown || 60);
-      } catch (e) { toast(errorMessage(e), 'err'); }
-    }
-  }, 'Renvoyer le code');
-
-  function startCooldown(sec) {
-    cooldown = sec;
-    clearInterval(timer);
-    timer = setInterval(() => {
-      cooldown -= 1;
-      if (cooldown <= 0) { clearInterval(timer); resendBtn.disabled = false; resendBtn.textContent = 'Renvoyer le code'; }
-      else { resendBtn.disabled = true; resendBtn.textContent = `Renvoyer dans ${cooldown}s`; }
-    }, 1000);
-    resendBtn.disabled = true;
-    resendBtn.textContent = `Renvoyer dans ${cooldown}s`;
-  }
-
-  const inpEmail = h('input', { type: 'email', id: 'f_email', value: email, placeholder: 'vous@exemple.ma', required: true });
-  const inpCode = h('input', { type: 'text', id: 'f_code', class: 'code-input', maxlength: '8', placeholder: '000000', required: true, autocomplete: 'one-time-code' });
-
   const card = h('div', { class: 'auth-card' },
-    h('h2', {}, 'Vérification email'),
-    h('div', { class: 'sub' }, outbox
-      ? 'SMTP non configuré : aucun email n’a réellement été envoyé (copie locale dans data/outbox).'
-      : 'Un code à 6 chiffres a été envoyé à votre adresse. Il expire dans 15 minutes.'),
-    h('div', { class: 'field' }, h('label', {}, 'Adresse email'), inpEmail),
-    h('div', { class: 'field' }, h('label', {}, 'Code de vérification'), inpCode),
-    devCode ? h('div', { class: 'field' },
-      h('div', { class: 'help', style: { background: 'var(--warn-soft)', padding: '9px 11px', borderRadius: '8px', color: 'var(--warn)' } },
-        `SMTP non configuré — code de test : ${devCode}`)) : null,
-    (!devCode && outbox) ? h('div', { class: 'field' },
-      h('div', { class: 'help', style: { background: 'var(--warn-soft)', padding: '9px 11px', borderRadius: '8px', color: 'var(--warn)' } },
-        'Le code n’a pas pu être envoyé : configurez SMTP dans Paramètres (l’administration dispose d’une copie dans data/outbox).')) : null,
-    infoBox = h('div', { class: 'err', style: { display: 'none' } }),
-    h('div', { style: { display: 'flex', gap: '9px', marginTop: '10px', flexWrap: 'wrap' } },
-      h('button', {
-        class: 'btn', onclick: async () => {
-          infoBox.style.display = 'none';
-          try {
-            const res = await post('/api/auth/verify', { email: inpEmail.value, code: inpCode.value.trim() });
-            toast(res.message || 'Email vérifié.', 'ok');
-            sessionStorage.removeItem('dev_code');
-            setTimeout(() => window.navigateTo('/login'), 700);
-          } catch (e) {
-            infoBox.textContent = errorMessage(e);
-            infoBox.style.display = 'block';
-            toast(errorMessage(e), 'err');
-          }
-        }
-      }, 'Vérifier'),
-      resendBtn),
-    h('div', { class: 'auth-alt' }, 'Vous pouvez maintenant ', h('a', { href: '#/login', style: { fontWeight: 700 } }, 'vous connecter')),
-    h('div', { class: 'auth-alt', style: { marginTop: '6px', fontSize: '13px' } },
-      'Le compte reste en attente tant que l’administration n’a pas validé la demande.'));
+    h('h2', {}, 'Demande enregistrée'),
+    h('div', { class: 'sub' }, 'Votre compte est en attente de validation administrative'),
+    h('div', { class: 'card', style: { borderLeft: '4px solid var(--warn)', marginTop: '4px' } },
+      h('div', { style: { display: 'grid', gap: '10px' } },
+        h('div', {}, badge('En attente de validation administrative', 'warn')),
+        email ? h('div', { class: 'help', style: { fontSize: '13px' } }, `Compte demandé pour : ${email}`) : null,
+        h('p', { class: 'help', style: { margin: 0, lineHeight: 1.6 } },
+          'Aucun code de vérification n’est à saisir. L’accès aux fonctionnalités protégées reste bloqué '
+          + 'jusqu’à l’approbation de votre demande par l’administration ISPITS : vous serez notifié dès sa validation.'),
+        h('div', { style: { display: 'flex', gap: '9px', flexWrap: 'wrap' } },
+          h('a', { class: 'btn', href: '#/login' }, 'Aller à la connexion'),
+          h('a', { class: 'btn secondary', href: '#/register' }, 'Nouvelle demande')))),
+    h('div', { class: 'auth-alt' }, 'Déjà validé par l’administration ? ',
+      h('a', { href: '#/login', style: { fontWeight: 700 } }, 'Se connecter')),
+    h('div', { class: 'auth-alt', style: { marginTop: '6px' } },
+      h('a', { href: '#/' }, '← Retour à l’accueil')));
 
-  if (email) startCooldown(60);
   return h('div', { class: 'auth-wrap' }, authHero(), h('div', { class: 'auth-panel' }, card));
 }
 
